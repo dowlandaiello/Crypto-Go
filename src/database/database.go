@@ -35,6 +35,7 @@ func AddAccount(database *mgo.Database, account accounts.Account) error {
 	return nil
 }
 
+// FindAccount - query specified database, return found account (if found)
 func FindAccount(database *mgo.Database, account accounts.Account, username string) (accounts.Account, error) {
 	c := database.C("accounts")
 
