@@ -25,7 +25,7 @@ func ReadDatabase(address string) (*mgo.Database, error) {
 func addAccount(database *mgo.Database, account accounts.Account) error {
 	c := database.C("accounts")
 
-	err := c.Insert(accounts.NewAccount("test", "test", "test"))
+	err := c.Insert(account)
 
 	if err != nil {
 		return err
