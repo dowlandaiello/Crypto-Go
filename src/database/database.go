@@ -11,8 +11,6 @@ func ReadDatabase(address string) (*mgo.Database, error) {
 		return nil, err
 	}
 
-	defer session.Close()
-
 	session.SetMode(mgo.Monotonic, true)
 
 	c := session.DB("crypto")

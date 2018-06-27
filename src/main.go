@@ -1,21 +1,23 @@
 package main
 
 import (
-	"github.com/mitsukomegumi/FakeCrypto/src/accounts"
-	"gopkg.in/mgo.v2"
+	"fmt"
+
+	"github.com/mitsukomegumi/FakeCrypto/src/database"
 )
 
 func main() {
-	session, err := mgo.Dial("127.0.0.1")
+	db, err := database.ReadDatabase("127.0.0.1")
+
 	if err != nil {
 		panic(err)
 	}
 
-	defer session.Close()
+	acc, err := database.FindAccount(db, "test")
 
-	session.SetMode(mgo.Monotonic, true)
+	if err != nil {
+		panic(err)
+	}
 
-	c := session.DB("crypto").C("accounts")
-
-	err = c.Insert(accounts.NewAccount("test", "test", "test"))
+	fmt.Println(acc)
 }
