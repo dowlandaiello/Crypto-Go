@@ -29,3 +29,12 @@
 4. Fill Time (if filled)
 5. Order Type
 6. Order Fee
+
+## Accounts (only accessible via user token)
+
+1. Username
+2. Email
+3. Hashed Password
+4. Hash ID
+5. Wallet Balances
+6. Wallet Addresses
