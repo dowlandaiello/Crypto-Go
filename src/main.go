@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
-	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
-
 	"github.com/mitsukomegumi/Crypto-Go/src/database"
+	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
+	"github.com/mitsukomegumi/crypto-go/src/api"
 )
 
 func main() {
@@ -44,6 +44,18 @@ func main() {
 	}
 
 	fmt.Println(nAcc)
+
+	req, rErr := api.NewRequestServer("test", "/api/accounts", "GET", *nAcc)
+
+	if rErr != nil {
+		panic(err)
+	}
+
+	rErr = req.AttemptToServeRequests()
+
+	if rErr != nil {
+		panic(rErr)
+	}
 }
 
 /*
