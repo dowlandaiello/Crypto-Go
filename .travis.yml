@@ -16,7 +16,7 @@ email: false
 # Anything in before_script that returns a nonzero exit code will flunk the
 # build and immediately stop. It's sorta like having set -e enabled in bash.
 # Make sure golangci-lint is vendored by running
-#   dep ensure -add github.com/golangci/golangci-lint/cmd/golangci-lint
+dep ensure -add github.com/golangci/golangci-lint/cmd/golangci-lint
 # ...and adding this to your Gopkg.toml file.
 #   required = ["github.com/golangci/golangci-lint/cmd/golangci-lint"]
 before_script:
