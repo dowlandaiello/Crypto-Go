@@ -6,6 +6,9 @@ import (
 	"encoding/gob"
 )
 
+// AvailableSymbols - acceptable trading symbols
+var AvailableSymbols = []string{"BTC", "LTC", "ETH"}
+
 // Hash - hash specified interface, return string
 func Hash(obj interface{}) (string, error) {
 	b, err := GetBytes(obj)
@@ -28,4 +31,14 @@ func GetBytes(key interface{}) ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+// StringInSlice - checks if specified string is in slice
+func StringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
