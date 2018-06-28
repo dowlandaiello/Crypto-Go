@@ -5,6 +5,7 @@ import (
 
 	"github.com/mitsukomegumi/FakeCrypto/src/accounts"
 	"github.com/mitsukomegumi/FakeCrypto/src/common"
+	"github.com/mitsukomegumi/FakeCrypto/src/pairs"
 )
 
 // Order - definition of order, fields attributed to a single order
@@ -16,17 +17,18 @@ type Order struct {
 
 	Amount int `json:"amount"`
 
-	OrderType string `json:"ordertype"`
-	OrderFee  int    `json:"orderfee"`
+	OrderType string     `json:"ordertype"`
+	OrderFee  int        `json:"orderfee"`
+	OrderPair pairs.Pair `json:"tradingpair"`
 
-	Issuer accounts.Account `json:"issuer"`
+	Issuer *accounts.Account `json:"issuer"`
 
 	ID string `json:"order"`
 }
 
 // NewOrder - creates, retursn new instance of order struct
 func NewOrder(account accounts.Account, ordertype string, amount int) (Order, error) {
-	rOrder := Order{Filled: false, IssuanceTime: time.Now().UTC(), Amount: amount, OrderType: ordertype, Issuer: account, ID: ""}
+	rOrder := Order{Filled: false, IssuanceTime: time.Now().UTC(), Amount: amount, OrderType: ordertype, Issuer: &account, ID: ""}
 
 	hash, err := common.Hash(rOrder)
 
