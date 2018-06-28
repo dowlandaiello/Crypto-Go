@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/mitsukomegumi/FakeCrypto/src/accounts"
+	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
