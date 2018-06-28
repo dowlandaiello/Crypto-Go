@@ -38,10 +38,22 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 
 	json.Unmarshal([]byte(request.ElementContents), db)
 
-	fmt.Fprintf(ctx, request.ElementName)
+	key := common.TrimLeftChar(request.ElementName)
+	value := ctx.UserValue(common.TrimLeftChar(request.ElementName)).(string)
 
-	val, err := findValue(&db, strings.SplitAfter(strings.SplitAfter(request.BaseElementLocation, "/")[1], "/")[1], request.ElementName, ctx.UserValue(request.ElementName))
-	//fmt.Fprint(ctx, findValue(request.ElementContents, request.BaseElementLocation, ctx.UserValue(request.Dynamics), ctx.UserValue(request.Dynamics)))
+	splitpath := strings.SplitAfter(request.BaseElementLocation, "/")[1]
+	collection := strings.SplitAfter(splitpath, "/")[1]
+
+	fmt.Println("collection: " + collection)
+	fmt.Println("splitpath: " + splitpath)
+
+	val, err := findValue(&db, collection, key, value)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprint(ctx, val)
 }
 
 // AttemptToServeRequests - attempts to handle incoming requests via data provided in request

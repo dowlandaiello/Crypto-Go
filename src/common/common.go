@@ -59,6 +59,16 @@ func RandStringBytesRmndr(n int) string {
 	return string(b)
 }
 
+// TrimLeftChar - trims value of string, removing first character
+func TrimLeftChar(s string) string {
+	for i := range s {
+		if i > 0 {
+			return s[i:]
+		}
+	}
+	return s[:0]
+}
+
 // GetNetworkParams - returns parameters of selected network
 func GetNetworkParams(network string) *chaincfg.Params {
 	networkParams := &chaincfg.MainNetParams
