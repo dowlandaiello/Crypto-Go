@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/mitsukomegumi/FakeCrypto/src/accounts"
+
 	"github.com/mitsukomegumi/FakeCrypto/src/database"
 )
 
@@ -15,11 +17,17 @@ func main() {
 
 	acc, err := database.FindAccount(db, "test")
 
+	update := accounts.NewAccount("test", "test@test.com", "asuydgfuadskgf")
+
+	err = database.UpdateAccount(db, *acc, &update)
+
+	nAcc, err := database.FindAccount(db, "test")
+
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(acc)
+	fmt.Println(nAcc)
 }
 
 /*
