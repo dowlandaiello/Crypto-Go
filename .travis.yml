@@ -1,0 +1,27 @@
+sudo: false
+
+language: go
+
+go:
+  - 1.9.x
+  - 1.x
+
+git:
+  depth: 1
+
+install: true
+
+email: false
+
+# Anything in before_script that returns a nonzero exit code will flunk the
+# build and immediately stop. It's sorta like having set -e enabled in bash.
+# Make sure golangci-lint is vendored by running
+#   dep ensure -add github.com/golangci/golangci-lint/cmd/golangci-lint
+# ...and adding this to your Gopkg.toml file.
+#   required = ["github.com/golangci/golangci-lint/cmd/golangci-lint"]
+before_script:
+  - go install ./vendor/github.com/golangci/golangci-lint/cmd/golangci-lint
+
+script:
+  - golangci-lint run       # run a bunch of code checkers/linters in parallel
+  - go test -v -race ./...  # Run all the tests with the race detector enabled
