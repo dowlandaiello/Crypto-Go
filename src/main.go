@@ -17,11 +17,7 @@ func main() {
 
 	acc, err := database.FindAccount(db, "test")
 
-<<<<<<< HEAD
 	update := accounts.NewAccount("test", "test@test.com", "mongo is amazing")
-=======
-	update := accounts.NewAccount("test", "test@test.com", "asuydgfuadskgf")
->>>>>>> 488ab90a1e202036a5422b54673fa83fd7e833d4
 
 	err = database.UpdateAccount(db, *acc, &update)
 
@@ -37,9 +33,6 @@ func main() {
 /*
 	Questions to ask:
 		- Should orders be stored in the account struct?
-<<<<<<< HEAD
 	TODO:
 		- Generate random wallet addresses on account creation
-=======
->>>>>>> 488ab90a1e202036a5422b54673fa83fd7e833d4
 */
