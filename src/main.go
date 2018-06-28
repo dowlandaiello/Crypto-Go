@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
+	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
 
 	"github.com/mitsukomegumi/Crypto-Go/src/database"
 )
@@ -20,13 +21,19 @@ func main() {
 
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			tempAccount := accounts.NewAccount("test", "test@test.com", "test")
+			pub, _, err := wallets.NewWallets()
+
+			if err != nil {
+				panic(err)
+			}
+
+			tempAccount := accounts.NewAccount("test", "test@test.com", "test", pub)
 			acc = &tempAccount
 			database.AddAccount(db, acc)
 		}
 	}
 
-	update := accounts.NewAccount("test", "test@test.com", "mongo is amazing")
+	update := accounts.NewAccount("test", "test@test.com", "mongo is amazing", acc.WalletAddresses)
 
 	err = database.UpdateAccount(db, *acc, &update)
 
@@ -42,6 +49,7 @@ func main() {
 /*
 	Questions to ask:
 		- Should orders be stored in the account struct?
+		- How would wallet private keys be stored?
 	TODO:
 		- Generate random wallet addresses on account creation
 */
