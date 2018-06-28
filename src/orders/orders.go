@@ -27,8 +27,8 @@ type Order struct {
 }
 
 // NewOrder - creates, retursn new instance of order struct
-func NewOrder(account accounts.Account, ordertype string, amount int) (Order, error) {
-	rOrder := Order{Filled: false, IssuanceTime: time.Now().UTC(), Amount: amount, OrderType: ordertype, Issuer: &account, ID: ""}
+func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pair, amount int) (Order, error) {
+	rOrder := Order{Filled: false, IssuanceTime: time.Now().UTC(), Amount: amount, OrderType: ordertype, OrderPair: tradingpair, Issuer: account, ID: ""}
 
 	hash, err := common.Hash(rOrder)
 
