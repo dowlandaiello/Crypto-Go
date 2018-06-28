@@ -3,9 +3,9 @@ package orders
 import (
 	"time"
 
-	"github.com/mitsukomegumi/FakeCrypto/src/accounts"
-	"github.com/mitsukomegumi/FakeCrypto/src/common"
-	"github.com/mitsukomegumi/FakeCrypto/src/pairs"
+	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
+	"github.com/mitsukomegumi/Crypto-Go/src/common"
+	"github.com/mitsukomegumi/Crypto-Go/src/pairs"
 )
 
 // Order - definition of order, fields attributed to a single order

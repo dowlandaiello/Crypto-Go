@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/mitsukomegumi/FakeCrypto/src/accounts"
+	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
 
-	"github.com/mitsukomegumi/FakeCrypto/src/database"
+	"github.com/mitsukomegumi/Crypto-Go/src/database"
 )
 
 func main() {

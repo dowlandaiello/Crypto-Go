@@ -1,6 +1,6 @@
 package pairs
 
-import "github.com/mitsukomegumi/FakeCrypto/src/common"
+import "github.com/mitsukomegumi/Crypto-Go/src/common"
 
 // Pair - trading pair definition
 type Pair struct {
