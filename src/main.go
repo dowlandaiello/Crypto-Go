@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
 
@@ -16,6 +17,14 @@ func main() {
 	}
 
 	acc, err := database.FindAccount(db, "test")
+
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			tempAccount := accounts.NewAccount("test", "test@test.com", "test")
+			acc = &tempAccount
+			database.AddAccount(db, acc)
+		}
+	}
 
 	update := accounts.NewAccount("test", "test@test.com", "mongo is amazing")
 
