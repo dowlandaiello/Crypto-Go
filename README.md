@@ -75,6 +75,7 @@
 4. Get - Fill Time (if filled)
 5. Get - Order Type
 6. Get - Order Fee
+7. Get - Trading Pair
 
 ### Account Routes (only accessible via user token)
 
