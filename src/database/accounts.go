@@ -19,6 +19,13 @@ func AddAccount(database *mgo.Database, account *accounts.Account) error {
 	return nil
 }
 
+// GetAllAccounts - get collection of accounts in db
+func GetAllAccounts(database *mgo.Database) (*mgo.Collection, error) {
+	c := database.C("accounts")
+
+	return c, nil
+}
+
 // RemoveAccount - remove specified account from database
 func RemoveAccount(database *mgo.Database, account *accounts.Account) error {
 	c := database.C("accounts")
