@@ -4,10 +4,17 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
+	"math/rand"
+
+	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcutil"
 )
 
 // AvailableSymbols - acceptable trading symbols
 var AvailableSymbols = []string{"BTC", "LTC", "ETH"}
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 // Hash - hash specified interface, return string
 func Hash(obj interface{}) (string, error) {
@@ -41,4 +48,43 @@ func StringInSlice(a string, list []string) bool {
 		}
 	}
 	return false
+}
+
+// RandStringBytesRmndr - generate random string
+func RandStringBytesRmndr(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Int63()%int64(len(letterBytes))]
+	}
+	return string(b)
+}
+
+// GetNetworkParams - returns parameters of selected network
+func GetNetworkParams(network string) *chaincfg.Params {
+	networkParams := &chaincfg.MainNetParams
+
+	if network == "bitcoin" {
+		networkParams.PubKeyHashAddrID = 0x00
+		networkParams.PrivateKeyID = 0x80
+	} else if network == "litecoin" {
+		networkParams.PubKeyHashAddrID = 0x30
+		networkParams.PrivateKeyID = 0xb0
+	}
+
+	return networkParams
+}
+
+// CreateWIF - creates WIF
+func CreateWIF(network string) (*btcutil.WIF, error) {
+	secret, err := btcec.NewPrivateKey(btcec.S256())
+	if err != nil {
+		return nil, err
+	}
+
+	return btcutil.NewWIF(secret, GetNetworkParams(network), true)
+}
+
+// GetAddress - get address from specified wif
+func GetAddress(network string, wif *btcutil.WIF) (*btcutil.AddressPubKey, error) {
+	return btcutil.NewAddressPubKey(wif.PrivKey.PubKey().SerializeCompressed(), GetNetworkParams(network))
 }

@@ -19,7 +19,20 @@ func AddAccount(database *mgo.Database, account *accounts.Account) error {
 	return nil
 }
 
-// UpdateAccount -
+// RemoveAccount - remove specified account from database
+func RemoveAccount(database *mgo.Database, account *accounts.Account) error {
+	c := database.C("accounts")
+
+	err := c.Remove(account)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateAccount - update account details in database
 func UpdateAccount(database *mgo.Database, account accounts.Account, update *accounts.Account) error {
 	c := database.C("accounts")
 
