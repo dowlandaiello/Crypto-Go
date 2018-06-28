@@ -7,7 +7,7 @@ import (
 )
 
 // AddAccount - add account to database
-func AddAccount(database *mgo.Database, account accounts.Account) error {
+func AddAccount(database *mgo.Database, account *accounts.Account) error {
 	c := database.C("accounts")
 
 	err := c.Insert(account)
@@ -20,7 +20,7 @@ func AddAccount(database *mgo.Database, account accounts.Account) error {
 }
 
 // UpdateAccount -
-func UpdateAccount(database *mgo.Database, account accounts.Account, update accounts.Account) error {
+func UpdateAccount(database *mgo.Database, account accounts.Account, update *accounts.Account) error {
 	c := database.C("accounts")
 
 	err := c.Update(account, update)
@@ -33,15 +33,15 @@ func UpdateAccount(database *mgo.Database, account accounts.Account, update acco
 }
 
 // FindAccount - query specified database, return found account (if found)
-func FindAccount(database *mgo.Database, username string) (accounts.Account, error) {
+func FindAccount(database *mgo.Database, username string) (*accounts.Account, error) {
 	c := database.C("accounts")
 
 	result := accounts.Account{}
 
 	err := c.Find(bson.M{"username": username}).One(&result)
 	if err != nil {
-		return result, err
+		return &result, err
 	}
 
-	return result, nil
+	return &result, nil
 }
