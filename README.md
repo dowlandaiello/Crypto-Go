@@ -32,6 +32,7 @@
 4. Fill Time (if filled)
 5. Order Type
 6. Order Fee
+7. Trading Pair
 
 ### Accounts (only accessible via user token)
 
