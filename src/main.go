@@ -21,3 +21,8 @@ func main() {
 
 	fmt.Println(acc)
 }
+
+/*
+	Questions to ask:
+		- Should orders be stored in the account struct?
+*/
