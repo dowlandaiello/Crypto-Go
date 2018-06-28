@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
+	"github.com/mitsukomegumi/Crypto-Go/src/api"
 	"github.com/mitsukomegumi/Crypto-Go/src/database"
 	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
-	"github.com/mitsukomegumi/crypto-go/src/api"
 )
 
 func main() {
@@ -37,25 +36,7 @@ func main() {
 
 	err = database.UpdateAccount(db, *acc, &update)
 
-	nAcc, err := database.FindAccount(db, "test")
-
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(nAcc)
-
-	req, rErr := api.NewRequestServer("test", "/api/accounts", "GET", *nAcc)
-
-	if rErr != nil {
-		panic(err)
-	}
-
-	rErr = req.AttemptToServeRequests()
-
-	if rErr != nil {
-		panic(rErr)
-	}
+	api.SetupAccountRoutes(db)
 }
 
 /*
