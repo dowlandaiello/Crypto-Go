@@ -28,6 +28,5 @@ func main() {
 
 /*
 	Questions to ask:
-		- Should orders be stored in the account struct?
-		- How would wallet private keys be stored?
+		- Store private keys
 */
