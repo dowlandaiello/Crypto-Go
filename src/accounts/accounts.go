@@ -13,7 +13,7 @@ type Account struct {
 }
 
 // NewAccount - create, return new account
-func NewAccount(username string, email string, passHash string, walletaddrs []string) Account {
-	rAccount := Account{Username: username, Email: email, PassHash: passHash, WalletAddresses: walletaddrs}
+func NewAccount(username string, email string, pass string, walletaddrs []string) Account {
+	rAccount := Account{Username: username, Email: email, PassHash: pass, WalletAddresses: walletaddrs}
 	return rAccount
 }
