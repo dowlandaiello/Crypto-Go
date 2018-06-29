@@ -40,25 +40,18 @@ func setGets(db *mgo.Database) error {
 }
 
 func setPosts(db *mgo.Database) error {
-	/*
-		postReq, rErr := api.NewRequestServer("POST", "/api/accounts", "POST", *nAcc)
+	postReq, rErr := NewRequestServer("POST", "/api/accounts", "POST", nil, db, "username/:email/:pass/:walletaddrs")
 
-		if rErr != nil {
-			panic(err)
-		}
+	if rErr != nil {
+		return rErr
+	}
 
-		rErr = req.AttemptToServeRequests()
+	pErr := postReq.AttemptToServeRequests()
 
-		if rErr != nil {
-			panic(rErr)
-		}
+	if pErr != nil {
+		panic(rErr)
+	}
 
-		pErr := postReq.AttemptToServeRequests()
-
-		if pErr != nil {
-			panic(pErr)
-		}
-	*/
 	return nil
 }
 
