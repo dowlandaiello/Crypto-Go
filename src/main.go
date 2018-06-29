@@ -1,10 +1,8 @@
 package main
 
 import (
-	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
 	"github.com/mitsukomegumi/Crypto-Go/src/api"
 	"github.com/mitsukomegumi/Crypto-Go/src/database"
-	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
 )
 
 func main() {
@@ -14,19 +12,10 @@ func main() {
 		panic(err)
 	}
 
-	pub, _, _ := wallets.NewWallets()
-
-	fAcc, _ := database.FindAccount(db, "mitsukom")
-	database.RemoveAccount(db, fAcc)
-
-	acc := accounts.NewAccount("mitsukom", "mitsukomegumii@gmail.com", "dnalwod080304", pub)
-
-	database.AddAccount(db, &acc)
-
 	api.SetupAccountRoutes(db)
 }
 
 /*
-	Questions to ask:
+	TODO:
 		- Store private keys
 */
