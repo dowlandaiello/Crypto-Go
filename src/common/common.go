@@ -110,3 +110,15 @@ func HashAndSalt(b []byte) string {
 
 	return string(hash)
 }
+
+// ComparePasswords - compare specified passwords (hash, actual), to verify correct
+func ComparePasswords(hashedPwd string, plainPwd []byte) bool {
+	byteHash := []byte(hashedPwd)
+	err := bcrypt.CompareHashAndPassword(byteHash, plainPwd)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	return true
+}

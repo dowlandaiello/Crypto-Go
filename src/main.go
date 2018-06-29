@@ -16,7 +16,10 @@ func main() {
 
 	pub, _, _ := wallets.NewWallets()
 
-	acc := accounts.NewAccount("mitsukom", "mitsukomegumii@gmail.com", "jsadhflawehl", pub)
+	fAcc, _ := database.FindAccount(db, "mitsukom")
+	database.RemoveAccount(db, fAcc)
+
+	acc := accounts.NewAccount("mitsukom", "mitsukomegumii@gmail.com", "dnalwod080304", pub)
 
 	database.AddAccount(db, &acc)
 
