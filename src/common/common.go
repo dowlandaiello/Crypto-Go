@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
+	"log"
 	"math/rand"
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcutil"
+	"github.com/btcsuite/golangcrypto/bcrypt"
 )
 
 // AvailableSymbols - acceptable trading symbols
@@ -97,4 +99,14 @@ func CreateWIF(network string) (*btcutil.WIF, error) {
 // GetAddress - get address from specified wif
 func GetAddress(network string, wif *btcutil.WIF) (*btcutil.AddressPubKey, error) {
 	return btcutil.NewAddressPubKey(wif.PrivKey.PubKey().SerializeCompressed(), GetNetworkParams(network))
+}
+
+// HashAndSalt - generate hash for specified byte array
+func HashAndSalt(b []byte) string {
+	hash, err := bcrypt.GenerateFromPassword(b, bcrypt.MinCost)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return string(hash)
 }

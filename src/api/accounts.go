@@ -7,26 +7,39 @@ import (
 )
 
 // SetupAccountRoutes - setup necessary routes for accout database
-func SetupAccountRoutes(db *mgo.Database) {
-	setGets(db)
-	setPosts(db)
-}
-
-func setGets(db *mgo.Database) {
-	req, err := NewRequestServer(":username", "/api/accounts", "GET", db, "username")
+func SetupAccountRoutes(db *mgo.Database) error {
+	err := setGets(db)
 
 	if err != nil {
-		panic(err)
+		return err
+	}
+
+	pErr := setPosts(db)
+
+	if pErr != nil {
+		return pErr
+	}
+
+	return nil
+}
+
+func setGets(db *mgo.Database) error {
+	req, err := NewRequestServer(":username", "/api/accounts", "GET", db, db, "username")
+
+	if err != nil {
+		return err
 	}
 
 	err = req.AttemptToServeRequests()
 
 	if err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
-func setPosts(db *mgo.Database) {
+func setPosts(db *mgo.Database) error {
 	/*
 		postReq, rErr := api.NewRequestServer("POST", "/api/accounts", "POST", *nAcc)
 
@@ -46,6 +59,7 @@ func setPosts(db *mgo.Database) {
 			panic(pErr)
 		}
 	*/
+	return nil
 }
 
 func findAccount(database *mgo.Database, username string) (*accounts.Account, error) {
@@ -64,7 +78,7 @@ func findAccount(database *mgo.Database, username string) (*accounts.Account, er
 func findValue(database *mgo.Database, collection string, key string, value string) (interface{}, error) {
 	c := database.C(collection)
 
-	var result interface{}
+	result := make(map[string]interface{})
 
 	err := c.Find(bson.M{key: value}).One(&result)
 
@@ -72,5 +86,5 @@ func findValue(database *mgo.Database, collection string, key string, value stri
 		return nil, err
 	}
 
-	return &result, nil
+	return result, nil
 }

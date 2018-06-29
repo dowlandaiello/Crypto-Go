@@ -24,6 +24,8 @@ type RequestElement struct {
 	ElementRequestType  string `json:"requesttype"`         // Type of request (e.g. 'post')
 	ElementContents     string `json:"requestdata"`         // Contents of request
 
+	ElementDb *mgo.Database `json:"database"`
+
 	Dynamics string `json:"dynamics"` // Dynamic data
 }
 
@@ -34,26 +36,24 @@ func (request RequestElement) Handle(ctx *fasthttp.RequestCtx) {
 
 // HandleVar - handle request, with dynamics
 func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
-	db := mgo.Database{}
-
-	json.Unmarshal([]byte(request.ElementContents), db)
-
 	key := common.TrimLeftChar(request.ElementName)
 	value := ctx.UserValue(common.TrimLeftChar(request.ElementName)).(string)
 
-	splitpath := strings.SplitAfter(request.BaseElementLocation, "/")[1]
-	collection := strings.SplitAfter(splitpath, "/")[1]
+	collection := strings.Split(request.BaseElementLocation, "/")[2]
 
-	fmt.Println("collection: " + collection)
-	fmt.Println("splitpath: " + splitpath)
-
-	val, err := findValue(&db, collection, key, value)
+	val, err := findValue(request.ElementDb, collection, key, value)
 
 	if err != nil {
-		panic(err)
-	}
+		fmt.Fprint(ctx, err.Error())
+	} else {
+		json, err := json.MarshalIndent(val, "", "  ")
 
-	fmt.Fprint(ctx, val)
+		if err != nil {
+			fmt.Fprint(ctx, err.Error())
+		} else {
+			fmt.Fprint(ctx, string(json[:]))
+		}
+	}
 }
 
 // AttemptToServeRequests - attempts to handle incoming requests via data provided in request
@@ -109,11 +109,11 @@ func (request RequestElement) AttemptToServeRequests() error {
 }
 
 // NewRequestServer - checks values of request, returns requestelement
-func NewRequestServer(name string, location string, requestType string, requestContents interface{}, dynamics string) (RequestElement, error) {
+func NewRequestServer(name string, location string, requestType string, requestContents interface{}, db *mgo.Database, dynamics string) (RequestElement, error) {
 	tempRequest := RequestElement{}
 	if name != "" && common.StringInSlice(requestType, AvailableRequestTypes) {
-		if requestContents == "" {
-			json, err := json.Marshal(requestContents)
+		if requestContents != "" {
+			json, err := json.MarshalIndent(requestContents, "", "  ")
 
 			if err != nil {
 				return tempRequest, err
@@ -125,11 +125,11 @@ func NewRequestServer(name string, location string, requestType string, requestC
 				return request, nil
 			}
 
-			request := RequestElement{ElementName: name, BaseElementLocation: location, ElementRequestType: requestType, ElementContents: string(json), Dynamics: dynamics}
+			request := RequestElement{ElementName: name, BaseElementLocation: location, ElementRequestType: requestType, ElementContents: string(json), ElementDb: db, Dynamics: dynamics}
 
 			return request, nil
 		}
-		request := RequestElement{ElementName: name, BaseElementLocation: location, ElementRequestType: requestType, Dynamics: dynamics}
+		request := RequestElement{ElementName: name, BaseElementLocation: location, ElementRequestType: requestType, ElementDb: db, Dynamics: dynamics}
 		return request, nil
 	}
 

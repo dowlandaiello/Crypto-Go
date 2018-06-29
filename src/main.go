@@ -1,8 +1,6 @@
 package main
 
 import (
-	"strings"
-
 	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
 	"github.com/mitsukomegumi/Crypto-Go/src/api"
 	"github.com/mitsukomegumi/Crypto-Go/src/database"
@@ -16,25 +14,11 @@ func main() {
 		panic(err)
 	}
 
-	acc, err := database.FindAccount(db, "test")
+	pub, _, _ := wallets.NewWallets()
 
-	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
-			pub, _, err := wallets.NewWallets()
+	acc := accounts.NewAccount("mitsukom", "mitsukomegumii@gmail.com", "jsadhflawehl", pub)
 
-			if err != nil {
-				panic(err)
-			}
-
-			tempAccount := accounts.NewAccount("test", "test@test.com", "test", pub)
-			acc = &tempAccount
-			database.AddAccount(db, acc)
-		}
-	}
-
-	update := accounts.NewAccount("test", "test@test.com", "mongo is amazing", acc.WalletAddresses)
-
-	err = database.UpdateAccount(db, *acc, &update)
+	database.AddAccount(db, &acc)
 
 	api.SetupAccountRoutes(db)
 }
