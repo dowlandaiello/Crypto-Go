@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"gopkg.in/mgo.v2"
-
 	"github.com/buaazp/fasthttprouter"
 	"github.com/valyala/fasthttp"
 
