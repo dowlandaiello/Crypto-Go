@@ -3,6 +3,7 @@ package common
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/gob"
 	"log"
 	"math/rand"
@@ -16,6 +17,12 @@ import (
 // AvailableSymbols - acceptable trading symbols
 var AvailableSymbols = []string{"BTC", "LTC", "ETH"}
 
+// AvailableOrderType - acceptable trading order types
+var AvailableOrderType = []string{"BUY", "SELL"}
+
+// FeeRate - global exchange fee
+const FeeRate = 0.1
+
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 // Hash - hash specified interface, return string
@@ -26,9 +33,10 @@ func Hash(obj interface{}) (string, error) {
 		return "", err
 	}
 
-	h := sha256.Sum256(b)
+	hasher := sha256.New()
+	hasher.Write(b)
 
-	return string(h[:]), nil
+	return base64.URLEncoding.EncodeToString(hasher.Sum(nil)), nil
 }
 
 // GetBytes - get bytes of specified interface, return byte array

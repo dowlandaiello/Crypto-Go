@@ -1,6 +1,10 @@
 package pairs
 
-import "github.com/mitsukomegumi/Crypto-Go/src/common"
+import (
+	"strings"
+
+	"github.com/mitsukomegumi/Crypto-Go/src/common"
+)
 
 // Pair - trading pair definition
 type Pair struct {
@@ -10,7 +14,10 @@ type Pair struct {
 
 // NewPair - returns pair, checks if valid
 func NewPair(startingSymbol string, endingSymbol string) Pair {
-	if startingSymbol != endingSymbol && common.StringInSlice(startingSymbol, common.AvailableSymbols) && common.StringInSlice(endingSymbol, common.AvailableSymbols) {
+	startingSymbol = strings.ToUpper(startingSymbol)
+	endingSymbol = strings.ToUpper(endingSymbol)
+
+	if startingSymbol != endingSymbol && common.StringInSlice(startingSymbol, common.AvailableSymbols) && common.StringInSlice(endingSymbol, common.AvailableSymbols) && startingSymbol != endingSymbol {
 		return Pair{StartingSymbol: startingSymbol, EndingSymbol: endingSymbol}
 	}
 	return Pair{}
