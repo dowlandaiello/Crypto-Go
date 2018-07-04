@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
+
 	"gopkg.in/mgo.v2"
 
 	"github.com/buaazp/fasthttprouter"
+	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
 	"github.com/valyala/fasthttp"
 
 	"github.com/mitsukomegumi/Crypto-Go/src/common"
@@ -56,6 +59,43 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 	}
 }
 
+// HandlePost - handle POST request, with dynamics
+func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
+	keys := strings.Split(request.Dynamics, "/:")
+	keys = append(keys[:0], keys[0+1:]...)
+
+	values := []string{}
+
+	x := 0
+
+	for x != len(keys) {
+		values = append(values, ctx.UserValue(keys[x]).(string))
+		x++
+	}
+
+	if common.StringInSlice("username", keys) {
+		fmt.Println("creating user")
+
+		pub, _, _ := wallets.NewWallets()
+
+		acc := accounts.NewAccount(values[0], values[1], values[2], pub)
+
+		err := addAccount(request.ElementDb, &acc)
+
+		if err != nil {
+			fmt.Fprintf(ctx, err.Error())
+		} else {
+			json, err := json.MarshalIndent(acc, "", "  ")
+
+			if err != nil {
+				fmt.Fprintf(ctx, err.Error())
+			} else {
+				fmt.Fprintf(ctx, string(json[:]))
+			}
+		}
+	}
+}
+
 // AttemptToServeRequests - attempts to handle incoming requests via data provided in request
 func (request RequestElement) AttemptToServeRequests() error {
 	fmt.Println("atttempting to serve requests")
@@ -86,10 +126,11 @@ func (request RequestElement) AttemptToServeRequests() error {
 
 		return nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[1])) {
-		fullPath := request.BaseElementLocation + "/" + request.ElementName
+		fullPath := request.BaseElementLocation + request.Dynamics
+
 		router := fasthttprouter.New()
 
-		router.POST(fullPath, func(ctx *fasthttp.RequestCtx) {})
+		router.POST(fullPath, request.HandlePost)
 
 		fasthttp.ListenAndServe(":8080", router.Handler)
 

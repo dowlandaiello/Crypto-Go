@@ -8,16 +8,19 @@ import (
 
 // SetupAccountRoutes - setup necessary routes for accout database
 func SetupAccountRoutes(db *mgo.Database) error {
+	go func() error {
+		pErr := setPosts(db)
+
+		if pErr != nil {
+			return pErr
+		}
+		return nil
+	}()
+
 	err := setGets(db)
 
 	if err != nil {
 		return err
-	}
-
-	pErr := setPosts(db)
-
-	if pErr != nil {
-		return pErr
 	}
 
 	return nil
@@ -40,7 +43,7 @@ func setGets(db *mgo.Database) error {
 }
 
 func setPosts(db *mgo.Database) error {
-	postReq, rErr := NewRequestServer("POST", "/api/accounts", "POST", nil, db, "username/:email/:pass/:walletaddrs")
+	postReq, rErr := NewRequestServer("POST", "/api/accounts", "POST", nil, db, "/:username/:email/:pass")
 
 	if rErr != nil {
 		return rErr
@@ -50,6 +53,18 @@ func setPosts(db *mgo.Database) error {
 
 	if pErr != nil {
 		panic(rErr)
+	}
+
+	return nil
+}
+
+func addAccount(database *mgo.Database, account *accounts.Account) error {
+	c := database.C("accounts")
+
+	err := c.Insert(account)
+
+	if err != nil {
+		return err
 	}
 
 	return nil
