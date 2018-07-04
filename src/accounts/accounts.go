@@ -4,14 +4,14 @@ import "github.com/mitsukomegumi/Crypto-Go/src/common"
 
 // Account - exchange account
 type Account struct {
-	Balance int `json:"balance"`
+	Balance float64 `json:"balance"`
 
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	PassHash string `json:"passwordhash"`
 
 	WalletAddresses []string `json:"walletaddresses"`
-	WalletBalances  []int
+	WalletBalances  []float64
 }
 
 // NewAccount - create, return new account

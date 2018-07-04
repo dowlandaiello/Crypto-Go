@@ -26,8 +26,7 @@ func SetupOrderRoutes(router *fasthttprouter.Router, db *mgo.Database) (*fasthtt
 }
 
 func setOrderGets(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	req, err := NewRequestServer(":pair/:orderid", "/api/accounts", "GET", db, db, "orderid")
-
+	req, err := NewRequestServer(":pair/:OrderID", "/api/orders", "GET", db, db, "OrderID")
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +58,7 @@ func setOrderPosts(initRouter *fasthttprouter.Router, db *mgo.Database) (*fastht
 
 func addOrder(database *mgo.Database, order *orders.Order) error {
 
-	_, err := findOrder(database, order.ID, order.OrderPair)
+	_, err := findOrder(database, order.OrderID, order.OrderPair)
 
 	if err != nil {
 		c := database.C(order.OrderPair.StartingSymbol + "-" + order.OrderPair.EndingSymbol)

@@ -4,7 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
+
+	"github.com/mitsukomegumi/Crypto-Go/src/pairs"
+
+	"github.com/mitsukomegumi/Crypto-Go/src/orders"
 
 	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
 
@@ -41,6 +46,8 @@ func SetupRoutes(database *mgo.Database) error {
 		return err
 	}
 
+	SetupOrderRoutes(router, database)
+
 	err = fasthttp.ListenAndServe(":8080", router.Handler)
 
 	if err != nil {
@@ -57,12 +64,19 @@ func (request RequestElement) Handle(ctx *fasthttp.RequestCtx) {
 
 // HandleVar - handle request, with dynamics
 func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
-	key := common.TrimLeftChar(request.ElementName)
-	value := ctx.UserValue(common.TrimLeftChar(request.ElementName)).(string)
+	key := strings.Split(common.TrimLeftChar(request.ElementName), "/:")[0]
+	value := ctx.UserValue(key).(string)
 
 	collection := strings.Split(request.BaseElementLocation, "/")[2]
 
-	val, err := findValue(request.ElementDb, collection, key, value)
+	if strings.Contains(request.BaseElementLocation, "orders") {
+		collection = value
+
+		key = strings.Split(common.TrimLeftChar(request.ElementName), "/:")[1]
+		value = ctx.UserValue(key).(string)
+	}
+
+	val, err := findValue(request.ElementDb, collection, strings.ToLower(key), value)
 
 	if err != nil {
 		fmt.Fprint(ctx, err.Error())
@@ -91,7 +105,7 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 		x++
 	}
 
-	if common.StringInSlice("username", keys) {
+	if common.StringInSlice("username", keys) && !common.StringInSlice("pair", keys) {
 		pub, _, _ := wallets.NewWallets()
 
 		acc := accounts.NewAccount(values[0], values[1], values[2], pub)
@@ -107,6 +121,31 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 				fmt.Fprintf(ctx, err.Error())
 			} else {
 				fmt.Fprintf(ctx, string(json[:]))
+			}
+		}
+	} else if common.StringInSlice("pair", keys) {
+		acc, err := findAccount(request.ElementDb, values[3])
+
+		if err == nil {
+			if common.ComparePasswords(acc.PassHash, []byte(values[4])) {
+				split := strings.Split(values[0], "-")
+				pair := pairs.NewPair(split[0], split[1])
+				amount, _ := strconv.ParseFloat(values[2], 64)
+				order, _ := orders.NewOrder(acc, values[1], pair, amount)
+
+				err = addOrder(request.ElementDb, &order)
+
+				if err != nil {
+					fmt.Fprintf(ctx, err.Error())
+				} else {
+					json, err := json.MarshalIndent(order, "", "  ")
+
+					if err != nil {
+						fmt.Fprintf(ctx, err.Error())
+					} else {
+						fmt.Fprintf(ctx, string(json[:]))
+					}
+				}
 			}
 		}
 	}
