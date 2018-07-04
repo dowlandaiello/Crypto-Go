@@ -20,12 +20,12 @@ func main() {
 		panic(err)
 	}
 
-	api.SetupAccountRoutes(db)
+	api.SetupRoutes(db)
 }
 
 /*
 	FINDINGS:
-		Correct configuration: POST http://localhost:8080/api/accounts/POST username:test
+		- ListenAndServe() called multiple times, causing lockup
 	TODO:
 		- Store private keys
 */

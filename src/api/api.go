@@ -9,6 +9,7 @@ import (
 	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
 
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/buaazp/fasthttprouter"
 	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
@@ -30,6 +31,23 @@ type RequestElement struct {
 	ElementDb *mgo.Database `json:"database"`
 
 	Dynamics string `json:"dynamics"` // Dynamic data
+}
+
+// SetupRoutes - setup all necessary routes for operation
+func SetupRoutes(database *mgo.Database) error {
+	router, err := SetupAccountRoutes(database)
+
+	if err != nil {
+		return err
+	}
+
+	err = fasthttp.ListenAndServe(":8080", router.Handler)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Handle - attempt to serve specified data
@@ -74,8 +92,6 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 	}
 
 	if common.StringInSlice("username", keys) {
-		fmt.Println("creating user")
-
 		pub, _, _ := wallets.NewWallets()
 
 		acc := accounts.NewAccount(values[0], values[1], values[2], pub)
@@ -96,8 +112,40 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 	}
 }
 
+// AttemptToServeRequestsWithRouter - attempts to handle incoming requests via data provided in request
+func (request RequestElement) AttemptToServeRequestsWithRouter(router *fasthttprouter.Router) (*fasthttprouter.Router, error) {
+	fmt.Println("atttempting to serve requests")
+	if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[0])) && request.Dynamics == "" {
+		fullPath := request.BaseElementLocation + "/" + request.ElementName
+
+		router.GET(fullPath, request.Handle)
+
+		return router, nil
+	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[0])) && request.Dynamics != "" {
+		fullPath := request.BaseElementLocation + "/" + request.ElementName
+
+		router.GET(fullPath, request.HandleVar)
+
+		return router, nil
+	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[1])) {
+		fullPath := request.BaseElementLocation + request.Dynamics
+
+		router.POST(fullPath, request.HandlePost)
+
+		return router, nil
+	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[2])) {
+		fullPath := request.BaseElementLocation + "/" + request.ElementName
+
+		router.DELETE(fullPath, request.Handle)
+
+		return router, nil
+	}
+
+	return nil, errors.New("invalid request")
+}
+
 // AttemptToServeRequests - attempts to handle incoming requests via data provided in request
-func (request RequestElement) AttemptToServeRequests() error {
+func (request RequestElement) AttemptToServeRequests() (*fasthttprouter.Router, error) {
 	fmt.Println("atttempting to serve requests")
 	if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[0])) && request.Dynamics == "" {
 		fullPath := request.BaseElementLocation + "/" + request.ElementName
@@ -105,26 +153,14 @@ func (request RequestElement) AttemptToServeRequests() error {
 
 		router.GET(fullPath, request.Handle)
 
-		err := fasthttp.ListenAndServe(":8080", router.Handler)
-
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[0])) && request.Dynamics != "" {
 		fullPath := request.BaseElementLocation + "/" + request.ElementName
 		router := fasthttprouter.New()
 
 		router.GET(fullPath, request.HandleVar)
 
-		err := fasthttp.ListenAndServe(":8080", router.Handler)
-
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[1])) {
 		fullPath := request.BaseElementLocation + request.Dynamics
 
@@ -132,21 +168,17 @@ func (request RequestElement) AttemptToServeRequests() error {
 
 		router.POST(fullPath, request.HandlePost)
 
-		fasthttp.ListenAndServe(":8080", router.Handler)
-
-		return nil
+		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[2])) {
 		fullPath := request.BaseElementLocation + "/" + request.ElementName
 		router := fasthttprouter.New()
 
 		router.DELETE(fullPath, request.Handle)
 
-		fasthttp.ListenAndServe(":8080", router.Handler)
-
-		return nil
+		return router, nil
 	}
 
-	return errors.New("invalid request")
+	return nil, errors.New("invalid request")
 }
 
 // NewRequestServer - checks values of request, returns requestelement
@@ -175,4 +207,18 @@ func NewRequestServer(name string, location string, requestType string, requestC
 	}
 
 	return tempRequest, errors.New("invalid request")
+}
+
+func findValue(database *mgo.Database, collection string, key string, value string) (interface{}, error) {
+	c := database.C(collection)
+
+	result := make(map[string]interface{})
+
+	err := c.Find(bson.M{key: value}).One(&result)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

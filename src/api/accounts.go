@@ -1,69 +1,76 @@
 package api
 
 import (
+	"github.com/buaazp/fasthttprouter"
 	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
 // SetupAccountRoutes - setup necessary routes for accout database
-func SetupAccountRoutes(db *mgo.Database) error {
-	pErr := setPosts(db)
+func SetupAccountRoutes(db *mgo.Database) (*fasthttprouter.Router, error) {
+	router, pErr := setPosts(db)
 
 	if pErr != nil {
-		return pErr
+		return router, pErr
 	}
 
-	err := setGets(db)
+	_, err := setGets(router, db)
 
 	if err != nil {
-		return err
+		return router, err
 	}
 
-	return nil
+	return router, nil
 }
 
-func setGets(db *mgo.Database) error {
+func setGets(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
 	req, err := NewRequestServer(":username", "/api/accounts", "GET", db, db, "username")
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = req.AttemptToServeRequests()
+	router, err := req.AttemptToServeRequestsWithRouter(initRouter)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return router, nil
 }
 
-func setPosts(db *mgo.Database) error {
+func setPosts(db *mgo.Database) (*fasthttprouter.Router, error) {
 	postReq, rErr := NewRequestServer("POST", "/api/accounts", "POST", nil, db, "/:username/:email/:pass")
 
 	if rErr != nil {
-		return rErr
+		return nil, rErr
 	}
 
-	pErr := postReq.AttemptToServeRequests()
+	router, pErr := postReq.AttemptToServeRequests()
 
 	if pErr != nil {
 		panic(rErr)
 	}
 
-	return nil
+	return router, nil
 }
 
 func addAccount(database *mgo.Database, account *accounts.Account) error {
-	c := database.C("accounts")
 
-	err := c.Insert(account)
+	_, err := findAccount(database, account.Username)
 
 	if err != nil {
-		return err
-	}
+		c := database.C("accounts")
 
+		iErr := c.Insert(account)
+
+		if iErr != nil {
+			return iErr
+		}
+
+		return nil
+	}
 	return nil
 }
 
@@ -78,18 +85,4 @@ func findAccount(database *mgo.Database, username string) (*accounts.Account, er
 	}
 
 	return &result, nil
-}
-
-func findValue(database *mgo.Database, collection string, key string, value string) (interface{}, error) {
-	c := database.C(collection)
-
-	result := make(map[string]interface{})
-
-	err := c.Find(bson.M{key: value}).One(&result)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
 }
