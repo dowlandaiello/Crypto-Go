@@ -8,14 +8,11 @@ import (
 
 // SetupAccountRoutes - setup necessary routes for accout database
 func SetupAccountRoutes(db *mgo.Database) error {
-	go func() error {
-		pErr := setPosts(db)
+	pErr := setPosts(db)
 
-		if pErr != nil {
-			return pErr
-		}
-		return nil
-	}()
+	if pErr != nil {
+		return pErr
+	}
 
 	err := setGets(db)
 
