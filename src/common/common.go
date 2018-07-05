@@ -2,9 +2,14 @@ package common
 
 import (
 	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	cryptorand "crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/gob"
+	"errors"
+	"io"
 	"log"
 	"math/rand"
 
@@ -129,4 +134,45 @@ func ComparePasswords(hashedPwd string, plainPwd []byte) bool {
 	}
 
 	return true
+}
+
+// Encrypt - encrypt specified byte array with key
+func Encrypt(plaintext []byte, key []byte) ([]byte, error) {
+	c, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err = io.ReadFull(cryptorand.Reader, nonce); err != nil {
+		return nil, err
+	}
+
+	return gcm.Seal(nonce, nonce, plaintext, nil), nil
+}
+
+// Decrypt - decrypt specified byte array with key
+func Decrypt(ciphertext []byte, key []byte) ([]byte, error) {
+	c, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return nil, err
+	}
+
+	nonceSize := gcm.NonceSize()
+	if len(ciphertext) < nonceSize {
+		return nil, errors.New("ciphertext too short")
+	}
+
+	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+	return gcm.Open(nil, nonce, ciphertext, nil)
 }
