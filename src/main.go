@@ -20,5 +20,5 @@ func main() {
 		- ListenAndServe() called multiple times, causing lockup
 	TODO:
 		- Handle DELETE requests for orders
-		- Handle PUT requests
+		- Handle UPDATE requests
 */
