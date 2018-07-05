@@ -21,6 +21,12 @@ func SetupAccountRoutes(db *mgo.Database) (*fasthttprouter.Router, error) {
 		return router, err
 	}
 
+	_, dErr := setDeletes(router, db)
+
+	if dErr != nil {
+		return router, dErr
+	}
+
 	return router, nil
 }
 
@@ -50,10 +56,26 @@ func setPosts(db *mgo.Database) (*fasthttprouter.Router, error) {
 	router, pErr := postReq.AttemptToServeRequests()
 
 	if pErr != nil {
-		panic(rErr)
+		return router, pErr
 	}
 
 	return router, nil
+}
+
+func setDeletes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
+	delReq, rErr := NewRequestServer("DELETE", "/api/accounts", "DELETE", nil, db, "/:username/:pass")
+
+	if rErr != nil {
+		return nil, rErr
+	}
+
+	_, dErr := delReq.AttemptToServeRequestsWithRouter(initRouter)
+
+	if dErr != nil {
+		return initRouter, dErr
+	}
+
+	return initRouter, nil
 }
 
 func addAccount(database *mgo.Database, account *accounts.Account) error {
@@ -71,6 +93,18 @@ func addAccount(database *mgo.Database, account *accounts.Account) error {
 
 		return nil
 	}
+	return nil
+}
+
+func removeAccount(database *mgo.Database, account *accounts.Account) error {
+	c := database.C("accounts")
+
+	err := c.Remove(account)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

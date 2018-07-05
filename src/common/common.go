@@ -137,42 +137,50 @@ func ComparePasswords(hashedPwd string, plainPwd []byte) bool {
 }
 
 // Encrypt - encrypt specified byte array with key
-func Encrypt(plaintext []byte, key []byte) ([]byte, error) {
-	c, err := aes.NewCipher(key)
+func Encrypt(key, text []byte) ([]byte, error) {
+	keyBuf := make([]byte, 32)
+	textBuf := make([]byte, 32)
+
+	copy(keyBuf, key)
+	copy(textBuf, text)
+
+	block, err := aes.NewCipher(keyBuf)
 	if err != nil {
 		return nil, err
 	}
-
-	gcm, err := cipher.NewGCM(c)
-	if err != nil {
+	b := base64.StdEncoding.EncodeToString(textBuf)
+	ciphertext := make([]byte, aes.BlockSize+len(b))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err := io.ReadFull(cryptorand.Reader, iv); err != nil {
 		return nil, err
 	}
-
-	nonce := make([]byte, gcm.NonceSize())
-	if _, err = io.ReadFull(cryptorand.Reader, nonce); err != nil {
-		return nil, err
-	}
-
-	return gcm.Seal(nonce, nonce, plaintext, nil), nil
+	cfb := cipher.NewCFBEncrypter(block, iv)
+	cfb.XORKeyStream(ciphertext[aes.BlockSize:], []byte(b))
+	return ciphertext, nil
 }
 
 // Decrypt - decrypt specified byte array with key
-func Decrypt(ciphertext []byte, key []byte) ([]byte, error) {
-	c, err := aes.NewCipher(key)
+func Decrypt(key, text []byte) ([]byte, error) {
+	keyBuf := make([]byte, 32)
+	textBuf := make([]byte, 32)
+
+	copy(keyBuf, key)
+	copy(textBuf, text)
+
+	block, err := aes.NewCipher(keyBuf)
 	if err != nil {
 		return nil, err
 	}
-
-	gcm, err := cipher.NewGCM(c)
-	if err != nil {
-		return nil, err
-	}
-
-	nonceSize := gcm.NonceSize()
-	if len(ciphertext) < nonceSize {
+	if len(textBuf) < aes.BlockSize {
 		return nil, errors.New("ciphertext too short")
 	}
-
-	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
-	return gcm.Open(nil, nonce, ciphertext, nil)
+	iv := textBuf[:aes.BlockSize]
+	textBuf = textBuf[aes.BlockSize:]
+	cfb := cipher.NewCFBDecrypter(block, iv)
+	cfb.XORKeyStream(textBuf, textBuf)
+	data, err := base64.StdEncoding.DecodeString(string(textBuf))
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

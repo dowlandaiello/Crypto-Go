@@ -11,8 +11,6 @@ import (
 
 	"github.com/mitsukomegumi/Crypto-Go/src/orders"
 
-	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
-
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
@@ -62,6 +60,64 @@ func (request RequestElement) Handle(ctx *fasthttp.RequestCtx) {
 	fmt.Fprint(ctx, request.ElementContents)
 }
 
+// HandleDel - attempt to delete
+func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
+	keys := strings.Split(request.Dynamics, "/:")
+	keys = append(keys[:0], keys[0+1:]...)
+
+	values := []string{}
+
+	x := 0
+
+	for x != len(keys) {
+		values = append(values, ctx.UserValue(keys[x]).(string))
+		x++
+	}
+
+	if common.StringInSlice("username", keys) && !common.StringInSlice("pair", keys) {
+		acc, err := findAccount(request.ElementDb, values[0])
+
+		if err != nil {
+			fmt.Fprintf(ctx, err.Error())
+		} else {
+			if common.ComparePasswords(acc.PassHash, []byte(values[1])) {
+				err := removeAccount(request.ElementDb, acc)
+
+				if err != nil {
+					fmt.Fprintf(ctx, err.Error())
+				} else {
+					fmt.Fprintf(ctx, "removed")
+				}
+			}
+		}
+	} else if common.StringInSlice("pair", keys) {
+		acc, err := findAccount(request.ElementDb, values[3])
+
+		if err == nil {
+			if common.ComparePasswords(acc.PassHash, []byte(values[4])) {
+				split := strings.Split(values[0], "-")
+				pair := pairs.NewPair(split[0], split[1])
+				amount, _ := strconv.ParseFloat(values[2], 64)
+				order, _ := orders.NewOrder(acc, values[1], pair, amount)
+
+				err = addOrder(request.ElementDb, &order)
+
+				if err != nil {
+					fmt.Fprintf(ctx, err.Error())
+				} else {
+					json, err := json.MarshalIndent(order, "", "  ")
+
+					if err != nil {
+						fmt.Fprintf(ctx, err.Error())
+					} else {
+						fmt.Fprintf(ctx, string(json[:]))
+					}
+				}
+			}
+		}
+	}
+}
+
 // HandleVar - handle request, with dynamics
 func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 	key := strings.Split(common.TrimLeftChar(request.ElementName), "/:")[0]
@@ -106,9 +162,7 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 	}
 
 	if common.StringInSlice("username", keys) && !common.StringInSlice("pair", keys) {
-		pub, _, _ := wallets.NewWallets()
-
-		acc := accounts.NewAccount(values[0], values[1], values[2], pub)
+		acc := accounts.NewAccount(values[0], values[1], values[2])
 
 		err := addAccount(request.ElementDb, &acc)
 
@@ -153,7 +207,8 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 
 // AttemptToServeRequestsWithRouter - attempts to handle incoming requests via data provided in request
 func (request RequestElement) AttemptToServeRequestsWithRouter(router *fasthttprouter.Router) (*fasthttprouter.Router, error) {
-	fmt.Println("atttempting to serve requests")
+	fmt.Println("atttempting to serve requests with handler: " + request.ElementName)
+
 	if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[0])) && request.Dynamics == "" {
 		fullPath := request.BaseElementLocation + "/" + request.ElementName
 
@@ -173,9 +228,9 @@ func (request RequestElement) AttemptToServeRequestsWithRouter(router *fasthttpr
 
 		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[2])) {
-		fullPath := request.BaseElementLocation + "/" + request.ElementName
+		fullPath := request.BaseElementLocation + request.Dynamics
 
-		router.DELETE(fullPath, request.Handle)
+		router.DELETE(fullPath, request.HandleDel)
 
 		return router, nil
 	}
@@ -212,7 +267,7 @@ func (request RequestElement) AttemptToServeRequests() (*fasthttprouter.Router, 
 		fullPath := request.BaseElementLocation + "/" + request.ElementName
 		router := fasthttprouter.New()
 
-		router.DELETE(fullPath, request.Handle)
+		router.DELETE(fullPath, request.HandleDel)
 
 		return router, nil
 	}

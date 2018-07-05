@@ -1,8 +1,9 @@
 package accounts
 
 import (
-	"crypto/sha256"
 	"encoding/base64"
+
+	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
 
 	"github.com/mitsukomegumi/Crypto-Go/src/common"
 )
@@ -17,27 +18,30 @@ type Account struct {
 
 	WalletAddresses  []string `json:"walletaddresses"`
 	WalletBalances   []float64
-	WalletHashedKeys [][]byte `json:"hashedkeys"`
+	WalletHashedKeys []string `json:"hashedkeys"`
 }
 
 // NewAccount - create, return new account
-func NewAccount(username string, email string, pass string, walletaddrs []string, privatekeys []string) Account {
-	encrypted := encryptPrivateKeys(privatekeys, pass)
+func NewAccount(username string, email string, pass string) Account {
+	pub, priv, _ := wallets.NewWallets()
+	encrypted := encryptPrivateKeys(priv, pass)
 	pass = common.HashAndSalt([]byte(pass))
-	rAccount := Account{Username: username, Email: email, PassHash: pass, WalletAddresses: walletaddrs, WalletHashedKeys: encrypted}
+	rAccount := Account{Username: username, Email: email, PassHash: pass, WalletAddresses: pub, WalletHashedKeys: encrypted}
 	return rAccount
 }
 
-func decryptPrivateKeys(encryptedKeys []byte, key string) []string {
+func decryptPrivateKeys(encryptedKeys []string, key string) []string {
 	decrypted := []string{}
 
 	x := 0
 
 	for x != len(encryptedKeys)-1 {
-		singleDecrypted, _ := common.Decrypt(encryptedKeys[x], []byte(key))
-		decrypted = append(singleDecrypted)
+		singleDecrypted, _ := common.Decrypt([]byte(encryptedKeys[x]), []byte(key))
+		decrypted = append(decrypted, base64.URLEncoding.EncodeToString(singleDecrypted))
 		x++
 	}
+
+	return decrypted
 }
 
 func encryptPrivateKeys(privatekeys []string, key string) []string {
@@ -45,13 +49,10 @@ func encryptPrivateKeys(privatekeys []string, key string) []string {
 
 	x := 0
 
-	for x != len(privatekeys)-1 {
-		singleEncrypted, _ := common.Encrypt([]byte(privatekeys[x]), []byte(key))
+	for x != len(privatekeys) {
+		singleEncrypted, _ := common.Encrypt([]byte(key), []byte(privatekeys[x]))
 
-		hasher := sha256.New()
-		hasher.Write(singleEncrypted)
-
-		encrypted = append(encrypted, base64.URLEncoding.EncodeToString(hasher.Sum(nil)))
+		encrypted = append(encrypted, base64.URLEncoding.EncodeToString(singleEncrypted))
 		x++
 	}
 
