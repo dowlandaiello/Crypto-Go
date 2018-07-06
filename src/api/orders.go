@@ -28,6 +28,12 @@ func SetupOrderRoutes(router *fasthttprouter.Router, db *mgo.Database) (*fasthtt
 		return router, err
 	}
 
+	_, err = setGeneralRoutes(router, db)
+
+	if err != nil {
+		return router, err
+	}
+
 	return router, nil
 }
 
@@ -76,6 +82,13 @@ func setOrderDeletes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fast
 	}
 
 	return router, nil
+}
+
+func setGeneralRoutes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
+	getReq, _ := NewRequestServer("GET", "/api/orders/:pair", "GET", nil, db, "pair")
+	initRouter.GET("/api/orders/:pair", getReq.HandleGETCollection)
+
+	return initRouter, nil
 }
 
 func addOrder(database *mgo.Database, order *orders.Order) error {

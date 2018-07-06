@@ -118,6 +118,7 @@ func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
 // HandleVar - handle request, with dynamics
 func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 	key := strings.Split(common.TrimLeftChar(request.ElementName), "/:")[0]
+
 	value := ctx.UserValue(key).(string)
 
 	collection := strings.Split(request.BaseElementLocation, "/")[2]
@@ -198,6 +199,30 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 					}
 				}
 			}
+		}
+	}
+}
+
+// HandleGETCollection - handle GET requests for collections
+func (request RequestElement) HandleGETCollection(ctx *fasthttp.RequestCtx) {
+	collectionKey := strings.Split(request.BaseElementLocation, "/:")[1]
+
+	collection := ctx.UserValue(collectionKey)
+
+	var results []interface{}
+
+	c := request.ElementDb.C(collection.(string))
+
+	err := c.Find(nil).All(&results)
+	if err != nil {
+		fmt.Fprintf(ctx, err.Error())
+	} else {
+		json, err := json.MarshalIndent(results, "", "  ")
+
+		if err != nil {
+			fmt.Fprintf(ctx, err.Error())
+		} else {
+			fmt.Fprintf(ctx, string(json[:]))
 		}
 	}
 }

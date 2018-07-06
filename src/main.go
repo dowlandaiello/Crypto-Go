@@ -19,4 +19,5 @@ func main() {
 	TODO:
 		- Handle DELETE requests for orders
 		- Handle UPDATE requests
+		- On deployment, check for non-testnet
 */

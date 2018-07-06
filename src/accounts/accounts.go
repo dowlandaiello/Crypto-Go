@@ -2,6 +2,8 @@ package accounts
 
 import (
 	"encoding/base64"
+	"errors"
+	"strings"
 
 	"github.com/mitsukomegumi/Crypto-Go/src/common"
 	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
@@ -29,6 +31,33 @@ func NewAccount(username string, email string, pass string) Account {
 	pass = common.HashAndSalt([]byte(pass))
 	rAccount := Account{Username: username, Email: email, PassHash: pass, WalletAddresses: pub, WalletHashedKeys: encrypted}
 	return rAccount
+}
+
+// Deposit - wait for deposit into account
+func (acc *Account) Deposit(symbol string) error {
+	if common.StringInSlice(symbol, common.AvailableSymbols) {
+		_, err := acc.checkBalance(symbol)
+
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+	return errors.New("invalid symbol")
+}
+
+func (acc *Account) checkBalance(symbol string) (float64, error) {
+	if common.StringInSlice(symbol, common.AvailableSymbols) {
+		if strings.ToLower(symbol) == "BTC" {
+
+		} else if strings.ToLower(symbol) == "LTC" {
+
+		} else if strings.ToLower(symbol) == "ETH" {
+
+		}
+	}
+	return 0, errors.New("invalid symbol")
 }
 
 func decryptPrivateKeys(encryptedKeys []string, key string) []string {

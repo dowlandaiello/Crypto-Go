@@ -44,6 +44,24 @@ func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pai
 
 		account.Orders = append(account.Orders, hash)
 
+		if tradingpair.EndingSymbol == "BTC" {
+			account.WalletBalances[0] += rOrder.Amount
+		} else if tradingpair.EndingSymbol == "LTC" {
+			account.WalletBalances[1] += rOrder.Amount
+		} else if tradingpair.EndingSymbol == "ETH" {
+			account.WalletBalances[2] += rOrder.Amount
+		}
+
+		if tradingpair.StartingSymbol == "BTC" {
+			account.WalletBalances[0] -= rOrder.Amount
+		} else if tradingpair.StartingSymbol == "LTC" {
+			account.WalletBalances[1] -= rOrder.Amount
+		} else if tradingpair.StartingSymbol == "ETH" {
+			account.WalletBalances[2] -= rOrder.Amount
+		}
+
+		account.Balance -= (rOrder.OrderFee + rOrder.Amount)
+
 		return rOrder, nil
 	}
 	return Order{}, errors.New("insufficient balance")
