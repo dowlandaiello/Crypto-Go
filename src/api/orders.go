@@ -22,6 +22,12 @@ func SetupOrderRoutes(router *fasthttprouter.Router, db *mgo.Database) (*fasthtt
 		return router, err
 	}
 
+	_, err = setOrderDeletes(router, db)
+
+	if err != nil {
+		return router, err
+	}
+
 	return router, nil
 }
 
@@ -56,6 +62,22 @@ func setOrderPosts(initRouter *fasthttprouter.Router, db *mgo.Database) (*fastht
 	return router, nil
 }
 
+func setOrderDeletes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
+	delReq, rErr := NewRequestServer("DELETE", "/api/orders", "DELETE", nil, db, "/:pair/:OrderID/:username/:pass")
+
+	if rErr != nil {
+		return nil, rErr
+	}
+
+	router, pErr := delReq.AttemptToServeRequestsWithRouter(initRouter)
+
+	if pErr != nil {
+		panic(rErr)
+	}
+
+	return router, nil
+}
+
 func addOrder(database *mgo.Database, order *orders.Order) error {
 
 	_, err := findOrder(database, order.OrderID, order.OrderPair)
@@ -74,12 +96,24 @@ func addOrder(database *mgo.Database, order *orders.Order) error {
 	return nil
 }
 
+func removeOrder(database *mgo.Database, order *orders.Order) error {
+	c := database.C(order.OrderPair.StartingSymbol + "-" + order.OrderPair.EndingSymbol)
+
+	err := c.Remove(order)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func findOrder(database *mgo.Database, id string, pair pairs.Pair) (*orders.Order, error) {
 	c := database.C(pair.StartingSymbol + "-" + pair.EndingSymbol)
 
 	result := orders.Order{}
 
-	err := c.Find(bson.M{"ID": id}).One(&result)
+	err := c.Find(bson.M{"orderid": id}).One(&result)
 	if err != nil {
 		return &result, err
 	}

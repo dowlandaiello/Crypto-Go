@@ -91,26 +91,23 @@ func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
 			}
 		}
 	} else if common.StringInSlice("pair", keys) {
-		acc, err := findAccount(request.ElementDb, values[3])
+		acc, err := findAccount(request.ElementDb, values[2])
 
 		if err == nil {
-			if common.ComparePasswords(acc.PassHash, []byte(values[4])) {
+			if common.ComparePasswords(acc.PassHash, []byte(values[3])) {
 				split := strings.Split(values[0], "-")
 				pair := pairs.NewPair(split[0], split[1])
-				amount, _ := strconv.ParseFloat(values[2], 64)
-				order, _ := orders.NewOrder(acc, values[1], pair, amount)
-
-				err = addOrder(request.ElementDb, &order)
+				order, err := findOrder(request.ElementDb, values[1], pair)
 
 				if err != nil {
 					fmt.Fprintf(ctx, err.Error())
 				} else {
-					json, err := json.MarshalIndent(order, "", "  ")
+					err = removeOrder(request.ElementDb, order)
 
 					if err != nil {
 						fmt.Fprintf(ctx, err.Error())
 					} else {
-						fmt.Fprintf(ctx, string(json[:]))
+						fmt.Fprintf(ctx, "order removed")
 					}
 				}
 			}

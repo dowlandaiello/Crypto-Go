@@ -3,9 +3,8 @@ package accounts
 import (
 	"encoding/base64"
 
-	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
-
 	"github.com/mitsukomegumi/Crypto-Go/src/common"
+	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
 )
 
 // Account - exchange account
@@ -15,6 +14,8 @@ type Account struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	PassHash string `json:"passwordhash"`
+
+	Orders []string
 
 	WalletAddresses  []string `json:"walletaddresses"`
 	WalletBalances   []float64

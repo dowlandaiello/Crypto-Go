@@ -42,6 +42,8 @@ func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pai
 
 		rOrder.OrderID = hash
 
+		account.Orders = append(account.Orders, hash)
+
 		return rOrder, nil
 	}
 	return Order{}, errors.New("insufficient balance")
