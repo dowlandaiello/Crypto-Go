@@ -34,7 +34,7 @@ func NewAccount(username string, email string, pass string) Account {
 	pub, priv, _ := wallets.NewWallets()
 	encrypted := encryptPrivateKeys(priv, pass)
 	pass = common.HashAndSalt([]byte(pass))
-	rAccount := Account{Username: username, Email: email, PassHash: pass, WalletAddresses: pub, WalletHashedKeys: encrypted}
+	rAccount := Account{Balance: 0, Username: username, Email: email, PassHash: pass, WalletAddresses: pub, WalletBalances: []float64{float64(0), float64(0), float64(0)}, WalletHashedKeys: encrypted}
 	return rAccount
 }
 
@@ -60,7 +60,6 @@ func (acc *Account) Deposit(symbol string) error {
 			}
 
 			if balance >= prevBalance {
-				acc.WalletBalances = []float64{float64(0), float64(0), float64(0)}
 				acc.WalletBalances[common.IndexInSlice(strings.ToUpper(symbol), []string{"BTC", "LTC", "ETH"})] = balance
 
 				received = true

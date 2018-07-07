@@ -207,6 +207,8 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 		if err == nil {
 			fmt.Fprintf(ctx, "waiting for deposit")
 
+			acc.WalletBalances = []float64{float64(0), float64(0), float64(0)}
+
 			go acc.Deposit(values[1])
 		} else {
 			fmt.Fprintf(ctx, err.Error())
