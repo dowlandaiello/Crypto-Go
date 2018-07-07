@@ -59,8 +59,10 @@ func (acc *Account) Deposit(symbol string) error {
 				return err
 			}
 
-			if balance > prevBalance {
+			if balance >= prevBalance {
+				acc.WalletBalances = []float64{float64(0), float64(0), float64(0)}
 				acc.WalletBalances[common.IndexInSlice(strings.ToUpper(symbol), []string{"BTC", "LTC", "ETH"})] = balance
+
 				received = true
 			}
 		}
