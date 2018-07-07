@@ -21,4 +21,5 @@ func main() {
 		- Handle onchain wallet deposits
 		- On deployment, check for non-testnet
 		- solution to no main wallet, use 0 confs
+		- Allow GET requests for single users (requiring password), returining private keys
 */
