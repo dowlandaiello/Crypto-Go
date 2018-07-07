@@ -25,10 +25,44 @@ var AvailableSymbols = []string{"BTC", "LTC", "ETH"}
 // AvailableOrderType - acceptable trading order types
 var AvailableOrderType = []string{"BUY", "SELL"}
 
+// EtherscanToken - global reference to blockcypher api token
+var EtherscanToken = "M91WQ2WASNXW6QP3PBZMG7K9FWHYS9GYU3"
+
+// TxTimeout - global expiry time for tx
+const TxTimeout = 10
+
 // FeeRate - global exchange fee
 const FeeRate = 0.1
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+// BlockchainRequest - request struct for blockchain.com
+type BlockchainRequest struct {
+	Balance  float64 `json:"final_balance"`
+	TxCount  int     `json:"n_tx"`
+	Received float64 `json:"total_received"`
+}
+
+// EtherscanRequest - request struct for etherscan.io
+type EtherscanRequest struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	Result  string `json:"result"`
+}
+
+// BlockcypherRequest - request struct for blockcypher.com
+// NOTE: all balances are in satoshis
+type BlockcypherRequest struct {
+	Address          string `json:"address"`
+	Received         int    `json:"total_received"`
+	Sent             int    `json:"total_sent"`
+	SatBalance       int    `json:"balance"`
+	UncomfSatBalance int    `json:"unconfirmed_balance"`
+	FinalSatBalance  int    `json:"final_balance"`
+	TxCount          int    `json:"n_tx"`
+	UncomfTxCount    int    `json:"unconfirmed_n_tx"`
+	FinalTxCount     int    `json:"final_n_tx"`
+}
 
 // Hash - hash specified interface, return string
 func Hash(obj interface{}) (string, error) {
@@ -63,6 +97,16 @@ func StringInSlice(a string, list []string) bool {
 		}
 	}
 	return false
+}
+
+// IndexInSlice - attempts to retrieve position of item in slice
+func IndexInSlice(element string, data []string) int {
+	for k, v := range data {
+		if element == v {
+			return k
+		}
+	}
+	return -1 //not found.
 }
 
 // RandStringBytesRmndr - generate random string

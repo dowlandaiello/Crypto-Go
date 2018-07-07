@@ -1,6 +1,7 @@
 package wallets
 
 import (
+	"github.com/MitsukoMegumi/Crypto-Go/src/wallets/ltcwallets"
 	"github.com/mitsukomegumi/Crypto-Go/src/wallets/btcwallets"
 	"github.com/mitsukomegumi/Crypto-Go/src/wallets/ethwallets"
 )
@@ -19,7 +20,7 @@ func NewWallets() ([]string, []string, error) {
 		return nil, nil, err
 	}
 
-	ltcPub, ltcPrivate, err := btcwallets.NewWallet()
+	ltcPub, ltcPrivate, err := ltcwallets.NewWallet()
 
 	if err != nil {
 		return nil, nil, err

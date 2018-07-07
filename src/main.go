@@ -17,7 +17,8 @@ func main() {
 
 /*
 	TODO:
-		- Handle DELETE requests for orders
 		- Handle UPDATE requests
+		- Handle onchain wallet deposits
 		- On deployment, check for non-testnet
+		- solution to no main wallet, use 0 confs
 */

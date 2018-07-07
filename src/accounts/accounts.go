@@ -2,8 +2,13 @@ package accounts
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
+	"io/ioutil"
+	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mitsukomegumi/Crypto-Go/src/common"
 	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
@@ -36,12 +41,33 @@ func NewAccount(username string, email string, pass string) Account {
 // Deposit - wait for deposit into account
 func (acc *Account) Deposit(symbol string) error {
 	if common.StringInSlice(symbol, common.AvailableSymbols) {
-		_, err := acc.checkBalance(symbol)
+		received := false
 
-		if err != nil {
-			return err
+		startTime := time.Now()
+
+		prevBalance := acc.Balance
+
+		for received != true {
+
+			if time.Since(startTime) > common.TxTimeout*time.Second {
+				break
+			}
+
+			balance, err := acc.checkBalance(symbol)
+
+			if err != nil && !strings.Contains(err.Error(), "invalid character") {
+				return err
+			}
+
+			if balance > prevBalance {
+				acc.WalletBalances[common.IndexInSlice(strings.ToUpper(symbol), []string{"BTC", "LTC", "ETH"})] = balance
+				received = true
+			}
 		}
 
+		if received != true {
+			return errors.New("tx timed out")
+		}
 		return nil
 	}
 	return errors.New("invalid symbol")
@@ -49,12 +75,75 @@ func (acc *Account) Deposit(symbol string) error {
 
 func (acc *Account) checkBalance(symbol string) (float64, error) {
 	if common.StringInSlice(symbol, common.AvailableSymbols) {
-		if strings.ToLower(symbol) == "BTC" {
+		if strings.ToLower(symbol) == "btc" {
+			response, err := http.Get("https://blockchain.info/balance?active=" + acc.WalletAddresses[2])
+			if err != nil {
+				return float64(0), err
+			}
+			defer response.Body.Close()
+			contents, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				return float64(0), err
+			}
 
-		} else if strings.ToLower(symbol) == "LTC" {
+			formatted := common.BlockchainRequest{}
+			err = json.Unmarshal(contents, &formatted)
 
-		} else if strings.ToLower(symbol) == "ETH" {
+			if err != nil {
+				return float64(0), err
+			}
 
+			return formatted.Balance / 100000000, nil
+		} else if strings.ToLower(symbol) == "ltc" {
+			response, err := http.Get("http://api.blockcypher.com/v1/ltc/main/addrs/" + acc.WalletAddresses[1] + "/balance")
+			if err != nil {
+				return float64(0), err
+			}
+			defer response.Body.Close()
+			contents, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				return float64(0), err
+			}
+
+			formatted := common.EtherscanRequest{}
+			err = json.Unmarshal(contents, &formatted)
+
+			if err != nil {
+				return float64(0), err
+			}
+
+			val, err := strconv.ParseFloat(formatted.Result, 64)
+
+			if err != nil {
+				return float64(0), err
+			}
+
+			return val / 100000000, nil
+		} else if strings.ToLower(symbol) == "eth" {
+			response, err := http.Get("https://api.etherscan.io/api?module=account&action=balance&address=" + acc.WalletAddresses[0] + "&tag=latest&apikey=" + common.EtherscanToken)
+			if err != nil {
+				return float64(0), err
+			}
+			defer response.Body.Close()
+			contents, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				return float64(0), err
+			}
+
+			formatted := common.EtherscanRequest{}
+			err = json.Unmarshal(contents, &formatted)
+
+			if err != nil {
+				return float64(0), err
+			}
+
+			val, err := strconv.ParseFloat(formatted.Result, 64)
+
+			if err != nil {
+				return float64(0), err
+			}
+
+			return val / 1000000000000000000, nil
 		}
 	}
 	return 0, errors.New("invalid symbol")

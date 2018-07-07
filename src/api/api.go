@@ -159,7 +159,7 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 		x++
 	}
 
-	if common.StringInSlice("username", keys) && !common.StringInSlice("pair", keys) {
+	if common.StringInSlice("username", keys) && !common.StringInSlice("pair", keys) && !common.StringInSlice("symbol", keys) {
 		acc := accounts.NewAccount(values[0], values[1], values[2])
 
 		err := addAccount(request.ElementDb, &acc)
@@ -200,14 +200,32 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 				}
 			}
 		}
+	} else if common.StringInSlice("symbol", keys) {
+
+		acc, err := findAccount(request.ElementDb, values[0])
+
+		if err == nil {
+			fmt.Fprintf(ctx, "waiting for deposit")
+
+			go acc.Deposit(values[1])
+		} else {
+			fmt.Fprintf(ctx, err.Error())
+		}
 	}
 }
 
 // HandleGETCollection - handle GET requests for collections
 func (request RequestElement) HandleGETCollection(ctx *fasthttp.RequestCtx) {
-	collectionKey := strings.Split(request.BaseElementLocation, "/:")[1]
+	var collection interface{}
+	var collectionKey string
 
-	collection := ctx.UserValue(collectionKey)
+	if strings.Contains(request.BaseElementLocation, "/:") {
+		collectionKey = strings.Split(request.BaseElementLocation, "/:")[1]
+
+		collection = ctx.UserValue(collectionKey)
+	} else {
+		collection = strings.Split(request.BaseElementLocation, "api/")[1]
+	}
 
 	var results []interface{}
 
@@ -309,7 +327,7 @@ func NewRequestServer(name string, location string, requestType string, requestC
 			}
 
 			if dynamics == "" {
-				request := RequestElement{ElementName: name, BaseElementLocation: location, ElementRequestType: requestType, ElementContents: string(json)}
+				request := RequestElement{ElementName: name, BaseElementLocation: location, ElementRequestType: requestType, ElementContents: string(json), ElementDb: db}
 
 				return request, nil
 			}

@@ -27,6 +27,18 @@ func SetupAccountRoutes(db *mgo.Database) (*fasthttprouter.Router, error) {
 		return router, dErr
 	}
 
+	_, err = setDeposits(router, db)
+
+	if err != nil {
+		return router, err
+	}
+
+	_, err = setGeneralAccountRoutes(router, db)
+
+	if err != nil {
+		return router, err
+	}
+
 	return router, nil
 }
 
@@ -74,6 +86,29 @@ func setDeletes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttpr
 	if dErr != nil {
 		return initRouter, dErr
 	}
+
+	return initRouter, nil
+}
+
+func setDeposits(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
+	depReq, err := NewRequestServer("POST", "/api/deposit", "POST", nil, db, "/:username/:symbol")
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, dErr := depReq.AttemptToServeRequestsWithRouter(initRouter)
+
+	if dErr != nil {
+		return initRouter, dErr
+	}
+
+	return initRouter, nil
+}
+
+func setGeneralAccountRoutes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
+	getReq, _ := NewRequestServer("GET", "/api/accounts", "GET", nil, db, "")
+	initRouter.GET("/api/accounts", getReq.HandleGETCollection)
 
 	return initRouter, nil
 }
