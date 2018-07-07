@@ -12,6 +12,8 @@ import (
 
 	"github.com/mitsukomegumi/Crypto-Go/src/common"
 	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
+	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // Account - exchange account
@@ -39,7 +41,7 @@ func NewAccount(username string, email string, pass string) Account {
 }
 
 // Deposit - wait for deposit into account
-func (acc *Account) Deposit(symbol string) error {
+func (acc Account) Deposit(symbol string, db *mgo.Database) error {
 	if common.StringInSlice(symbol, common.AvailableSymbols) {
 		received := false
 
@@ -62,6 +64,14 @@ func (acc *Account) Deposit(symbol string) error {
 			if balance >= prevBalance {
 				acc.WalletBalances[common.IndexInSlice(strings.ToUpper(symbol), []string{"BTC", "LTC", "ETH"})] = balance
 
+				fAcc, err := findAccount(db, acc.Username)
+
+				if err != nil {
+					break
+				}
+
+				updateAccount(db, fAcc, &acc)
+
 				received = true
 			}
 		}
@@ -72,6 +82,19 @@ func (acc *Account) Deposit(symbol string) error {
 		return nil
 	}
 	return errors.New("invalid symbol")
+}
+
+func findAccount(database *mgo.Database, username string) (Account, error) {
+	c := database.C("accounts")
+
+	result := Account{}
+
+	err := c.Find(bson.M{"username": username}).One(&result)
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
 }
 
 func (acc *Account) checkBalance(symbol string) (float64, error) {
@@ -177,4 +200,16 @@ func encryptPrivateKeys(privatekeys []string, key string) []string {
 	}
 
 	return encrypted
+}
+
+func updateAccount(database *mgo.Database, account Account, update *Account) error {
+	c := database.C("accounts")
+
+	err := c.Update(account, update)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -12,6 +12,7 @@ import (
 	"io"
 	"log"
 	"math/rand"
+	"reflect"
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -107,6 +108,27 @@ func IndexInSlice(element string, data []string) int {
 		}
 	}
 	return -1 //not found.
+}
+
+// CheckSafe - check that value of specified interface is not nil
+func CheckSafe(val interface{}) bool {
+	if reflect.ValueOf(val).IsNil() {
+		return false
+	}
+	return true
+}
+
+// CheckSafeSlice - check that value of specified slice is not nil
+func CheckSafeSlice(val interface{}) bool {
+	switch reflect.TypeOf(val).Kind() {
+	case reflect.Slice:
+		s := reflect.ValueOf(val)
+
+		if s.Len() == 0 {
+			return false
+		}
+	}
+	return true
 }
 
 // RandStringBytesRmndr - generate random string

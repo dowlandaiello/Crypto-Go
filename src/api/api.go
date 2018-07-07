@@ -81,7 +81,7 @@ func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
 			fmt.Fprintf(ctx, err.Error())
 		} else {
 			if common.ComparePasswords(acc.PassHash, []byte(values[1])) {
-				err := removeAccount(request.ElementDb, acc)
+				err := removeAccount(request.ElementDb, &acc)
 
 				if err != nil {
 					fmt.Fprintf(ctx, err.Error())
@@ -183,7 +183,7 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 				split := strings.Split(values[0], "-")
 				pair := pairs.NewPair(split[0], split[1])
 				amount, _ := strconv.ParseFloat(values[2], 64)
-				order, _ := orders.NewOrder(acc, values[1], pair, amount)
+				order, _ := orders.NewOrder(&acc, values[1], pair, amount)
 
 				err = addOrder(request.ElementDb, &order)
 
@@ -207,9 +207,19 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 		if err == nil {
 			fmt.Fprintf(ctx, "waiting for deposit")
 
-			acc.WalletBalances = []float64{float64(0), float64(0), float64(0)}
+			if !common.CheckSafeSlice(acc.WalletBalances) {
+				acc.WalletBalances = []float64{float64(0), float64(0), float64(0)}
+			}
 
-			go acc.Deposit(values[1])
+			fAcc, fErr := findAccount(request.ElementDb, values[0])
+
+			if fErr != nil {
+				fmt.Fprint(ctx, fErr.Error())
+			}
+
+			updateAccount(request.ElementDb, fAcc, &acc)
+
+			go acc.Deposit(values[1], request.ElementDb)
 		} else {
 			fmt.Fprintf(ctx, err.Error())
 		}

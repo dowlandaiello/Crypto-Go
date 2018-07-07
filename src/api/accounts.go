@@ -131,6 +131,18 @@ func addAccount(database *mgo.Database, account *accounts.Account) error {
 	return nil
 }
 
+func updateAccount(database *mgo.Database, account accounts.Account, update *accounts.Account) error {
+	c := database.C("accounts")
+
+	err := c.Update(account, update)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func removeAccount(database *mgo.Database, account *accounts.Account) error {
 	c := database.C("accounts")
 
@@ -143,15 +155,15 @@ func removeAccount(database *mgo.Database, account *accounts.Account) error {
 	return nil
 }
 
-func findAccount(database *mgo.Database, username string) (*accounts.Account, error) {
+func findAccount(database *mgo.Database, username string) (accounts.Account, error) {
 	c := database.C("accounts")
 
 	result := accounts.Account{}
 
 	err := c.Find(bson.M{"username": username}).One(&result)
 	if err != nil {
-		return &result, err
+		return result, err
 	}
 
-	return &result, nil
+	return result, nil
 }

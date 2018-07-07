@@ -31,7 +31,7 @@ type Order struct {
 // NewOrder - creates, retursn new instance of order struct
 func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pair, amount float64) (Order, error) {
 	ordertype = strings.ToUpper(ordertype)
-	if amount < account.Balance {
+	if amount < account.WalletBalances[common.IndexInSlice(tradingpair.StartingSymbol, []string{"BTC", "LTC", "ETH"})] {
 		rOrder := Order{Filled: false, IssuanceTime: time.Now().UTC(), Amount: (1.0 - common.FeeRate) * amount, OrderType: ordertype, OrderPair: tradingpair, Issuer: account, OrderID: "", OrderFee: common.FeeRate * amount}
 
 		hash, err := common.Hash(rOrder)
