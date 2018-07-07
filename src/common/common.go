@@ -154,12 +154,16 @@ func TrimLeftChar(s string) string {
 func GetNetworkParams(network string) *chaincfg.Params {
 	networkParams := &chaincfg.MainNetParams
 
+	networkParams.Name = network
+
 	if network == "bitcoin" {
 		networkParams.PubKeyHashAddrID = 0x00
 		networkParams.PrivateKeyID = 0x80
+		networkParams.Net = 0xf9beb4d9
 	} else if network == "litecoin" {
 		networkParams.PubKeyHashAddrID = 0x30
 		networkParams.PrivateKeyID = 0xb0
+		networkParams.Net = 0xfbc0b6db
 	}
 
 	return networkParams
@@ -172,7 +176,7 @@ func CreateWIF(network string) (*btcutil.WIF, error) {
 		return nil, err
 	}
 
-	return btcutil.NewWIF(secret, GetNetworkParams(network), true)
+	return btcutil.NewWIF(secret, GetNetworkParams(network), false)
 }
 
 // GetAddress - get address from specified wif

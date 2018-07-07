@@ -14,5 +14,5 @@ func NewWallet() (string, string, error) {
 
 	pub, err := common.GetAddress("litecoin", priv)
 
-	return pub.String(), priv.String(), nil
+	return pub.EncodeAddress(), priv.String(), nil
 }
