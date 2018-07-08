@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/gob"
+	"encoding/hex"
 	"errors"
 	"io"
 	"log"
@@ -194,6 +195,20 @@ func HashAndSalt(b []byte) string {
 	return string(hash)
 }
 
+// HashSlice - hashes all elements in slice
+func HashSlice(s [][]byte) []string {
+	hashed := []string{}
+
+	x := 0
+
+	for x != len(s) {
+		hashed = append(hashed, hex.EncodeToString(s[x]))
+		x++
+	}
+
+	return hashed
+}
+
 // ComparePasswords - compare specified passwords (hash, actual), to verify correct
 func ComparePasswords(hashedPwd string, plainPwd []byte) bool {
 	byteHash := []byte(hashedPwd)
@@ -206,19 +221,21 @@ func ComparePasswords(hashedPwd string, plainPwd []byte) bool {
 	return true
 }
 
+// BytesToKey - converts standard byte array to byte array with key length
+func BytesToKey(raw []byte) []byte {
+	fixed := make([]byte, 32)
+	copy(fixed, raw)
+
+	return fixed
+}
+
 // Encrypt - encrypt specified byte array with key
 func Encrypt(key, text []byte) ([]byte, error) {
-	keyBuf := make([]byte, 32)
-	textBuf := make([]byte, 32)
-
-	copy(keyBuf, key)
-	copy(textBuf, text)
-
-	block, err := aes.NewCipher(keyBuf)
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
-	b := base64.StdEncoding.EncodeToString(textBuf)
+	b := base64.StdEncoding.EncodeToString(text)
 	ciphertext := make([]byte, aes.BlockSize+len(b))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(cryptorand.Reader, iv); err != nil {
@@ -231,24 +248,18 @@ func Encrypt(key, text []byte) ([]byte, error) {
 
 // Decrypt - decrypt specified byte array with key
 func Decrypt(key, text []byte) ([]byte, error) {
-	keyBuf := make([]byte, 32)
-	textBuf := make([]byte, 32)
-
-	copy(keyBuf, key)
-	copy(textBuf, text)
-
-	block, err := aes.NewCipher(keyBuf)
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
-	if len(textBuf) < aes.BlockSize {
+	if len(text) < aes.BlockSize {
 		return nil, errors.New("ciphertext too short")
 	}
-	iv := textBuf[:aes.BlockSize]
-	textBuf = textBuf[aes.BlockSize:]
+	iv := text[:aes.BlockSize]
+	text = text[aes.BlockSize:]
 	cfb := cipher.NewCFBDecrypter(block, iv)
-	cfb.XORKeyStream(textBuf, textBuf)
-	data, err := base64.StdEncoding.DecodeString(string(textBuf))
+	cfb.XORKeyStream(text, text)
+	data, err := base64.StdEncoding.DecodeString(string(text))
 	if err != nil {
 		return nil, err
 	}

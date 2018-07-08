@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -27,15 +26,15 @@ type Account struct {
 
 	Orders []string
 
-	WalletAddresses  []string `json:"walletaddresses"`
-	WalletBalances   []float64
-	WalletHashedKeys []string `json:"hashedkeys"`
+	WalletAddresses     []string `json:"walletaddresses"`
+	WalletBalances      []float64
+	WalletHashedKeys    []string `json:"hashedkeys"`
+	WalletRawHashedKeys [][]byte `json:"rawkeys"`
 }
 
 // NewAccount - create, return new account
 func NewAccount(username string, email string, pass string) Account {
 	pub, priv, _ := wallets.NewWallets()
-	fmt.Println(priv)
 	encrypted, err := encryptPrivateKeys(priv, pass)
 
 	if err != nil {
@@ -43,7 +42,7 @@ func NewAccount(username string, email string, pass string) Account {
 	}
 
 	pass = common.HashAndSalt([]byte(pass))
-	rAccount := Account{Balance: 0, Username: username, Email: email, PassHash: pass, WalletAddresses: pub, WalletBalances: []float64{float64(0), float64(0), float64(0)}, WalletHashedKeys: encrypted}
+	rAccount := Account{Balance: 0, Username: username, Email: email, PassHash: pass, WalletAddresses: pub, WalletBalances: []float64{float64(0), float64(0), float64(0)}, WalletRawHashedKeys: encrypted, WalletHashedKeys: common.HashSlice(encrypted)}
 	return rAccount
 }
 
@@ -181,19 +180,13 @@ func (acc *Account) checkBalance(symbol string) (float64, error) {
 }
 
 // DecryptPrivateKeys - decrypts private keys
-func DecryptPrivateKeys(encryptedKeys []string, key string) ([]string, error) {
+func DecryptPrivateKeys(encryptedKeys [][]byte, key string) ([]string, error) {
 	decrypted := []string{}
 
 	x := 0
 
 	for x != len(encryptedKeys) {
-		decoded, err := hex.DecodeString(encryptedKeys[x])
-
-		if err != nil {
-			return []string{}, err
-		}
-
-		singleDecrypted, err := common.Decrypt([]byte(key), decoded)
+		singleDecrypted, err := common.Decrypt(common.BytesToKey([]byte(key)), encryptedKeys[x])
 
 		if err != nil {
 			return []string{}, err
@@ -206,25 +199,19 @@ func DecryptPrivateKeys(encryptedKeys []string, key string) ([]string, error) {
 	return decrypted, nil
 }
 
-func encryptPrivateKeys(privatekeys []string, key string) ([]string, error) {
-	encrypted := []string{}
+func encryptPrivateKeys(privatekeys [][]byte, key string) ([][]byte, error) {
+	encrypted := [][]byte{}
 
 	x := 0
 
 	for x != len(privatekeys) {
-		hexDec, err := hex.DecodeString(privatekeys[x])
+		singleEncrypted, err := common.Encrypt(common.BytesToKey([]byte(key)), privatekeys[x])
 
 		if err != nil {
-			return []string{}, err
+			return [][]byte{}, err
 		}
 
-		singleEncrypted, err := common.Encrypt([]byte(key), hexDec)
-
-		if err != nil {
-			return []string{}, err
-		}
-
-		encrypted = append(encrypted, hex.EncodeToString(singleEncrypted))
+		encrypted = append(encrypted, singleEncrypted)
 		x++
 	}
 

@@ -7,7 +7,7 @@ import (
 )
 
 // NewWallets - generate pub, private keys for all wallet types
-func NewWallets() ([]string, []string, error) {
+func NewWallets() ([]string, [][]byte, error) {
 	btcPub, btcPrivate, err := btcwallets.NewWallet()
 
 	if err != nil {
@@ -26,5 +26,5 @@ func NewWallets() ([]string, []string, error) {
 		return nil, nil, err
 	}
 
-	return []string{btcPub, ltcPub, ethPub}, []string{ethPrivate, ltcPrivate, btcPrivate}, nil
+	return []string{btcPub, ltcPub, ethPub}, [][]byte{btcPrivate, ltcPrivate, ethPrivate}, nil
 }

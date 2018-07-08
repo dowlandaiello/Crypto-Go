@@ -139,7 +139,7 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 			fmt.Fprintf(ctx, err.Error())
 		} else {
 			if common.ComparePasswords(accVal.PassHash, []byte(ctx.UserValue(passKey).(string))) {
-				val, err := accounts.DecryptPrivateKeys(accVal.WalletHashedKeys, ctx.UserValue(passKey).(string))
+				val, err := accounts.DecryptPrivateKeys(accVal.WalletRawHashedKeys, ctx.UserValue(passKey).(string))
 
 				if err != nil {
 					fmt.Fprintf(ctx, err.Error())
