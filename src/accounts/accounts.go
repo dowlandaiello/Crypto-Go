@@ -1,9 +1,10 @@
 package accounts
 
 import (
-	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -34,6 +35,7 @@ type Account struct {
 // NewAccount - create, return new account
 func NewAccount(username string, email string, pass string) Account {
 	pub, priv, _ := wallets.NewWallets()
+	fmt.Println(priv)
 	encrypted, err := encryptPrivateKeys(priv, pass)
 
 	if err != nil {
@@ -185,7 +187,7 @@ func DecryptPrivateKeys(encryptedKeys []string, key string) ([]string, error) {
 	x := 0
 
 	for x != len(encryptedKeys) {
-		decoded, err := base64.URLEncoding.DecodeString(encryptedKeys[x])
+		decoded, err := hex.DecodeString(encryptedKeys[x])
 
 		if err != nil {
 			return []string{}, err
@@ -197,7 +199,7 @@ func DecryptPrivateKeys(encryptedKeys []string, key string) ([]string, error) {
 			return []string{}, err
 		}
 
-		decrypted = append(decrypted, base64.URLEncoding.EncodeToString(singleDecrypted))
+		decrypted = append(decrypted, hex.EncodeToString(singleDecrypted))
 		x++
 	}
 
@@ -210,13 +212,19 @@ func encryptPrivateKeys(privatekeys []string, key string) ([]string, error) {
 	x := 0
 
 	for x != len(privatekeys) {
-		singleEncrypted, err := common.Encrypt([]byte(key), []byte(privatekeys[x]))
+		hexDec, err := hex.DecodeString(privatekeys[x])
 
 		if err != nil {
 			return []string{}, err
 		}
 
-		encrypted = append(encrypted, base64.URLEncoding.EncodeToString(singleEncrypted))
+		singleEncrypted, err := common.Encrypt([]byte(key), hexDec)
+
+		if err != nil {
+			return []string{}, err
+		}
+
+		encrypted = append(encrypted, hex.EncodeToString(singleEncrypted))
 		x++
 	}
 
