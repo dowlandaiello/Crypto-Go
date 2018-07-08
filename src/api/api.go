@@ -130,17 +130,45 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 		value = ctx.UserValue(key).(string)
 	}
 
-	val, err := findValue(request.ElementDb, collection, strings.ToLower(key), value)
+	if strings.Contains(request.Dynamics, "password") && !strings.Contains(request.BaseElementLocation, "orders") {
+		passKey := strings.Split(common.TrimLeftChar(request.ElementName), "/:")[1]
 
-	if err != nil {
-		fmt.Fprint(ctx, err.Error())
+		accVal, err := findAccount(request.ElementDb, ctx.UserValue(strings.ToLower(key)).(string))
+
+		if err != nil {
+			fmt.Fprintf(ctx, err.Error())
+		} else {
+			if common.ComparePasswords(accVal.PassHash, []byte(ctx.UserValue(passKey).(string))) {
+				val, err := accounts.DecryptPrivateKeys(accVal.WalletHashedKeys, ctx.UserValue(passKey).(string))
+
+				if err != nil {
+					fmt.Fprintf(ctx, err.Error())
+				}
+
+				json, err := json.MarshalIndent(val, "", "  ")
+
+				if err != nil {
+					fmt.Fprint(ctx, err.Error())
+				} else {
+					fmt.Fprint(ctx, string(json[:]))
+				}
+			} else {
+				fmt.Fprintf(ctx, "incorrect password")
+			}
+		}
 	} else {
-		json, err := json.MarshalIndent(val, "", "  ")
+		val, err := findValue(request.ElementDb, collection, strings.ToLower(key), value)
 
 		if err != nil {
 			fmt.Fprint(ctx, err.Error())
 		} else {
-			fmt.Fprint(ctx, string(json[:]))
+			json, err := json.MarshalIndent(val, "", "  ")
+
+			if err != nil {
+				fmt.Fprint(ctx, err.Error())
+			} else {
+				fmt.Fprint(ctx, string(json[:]))
+			}
 		}
 	}
 }

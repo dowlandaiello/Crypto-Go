@@ -21,6 +21,12 @@ func SetupAccountRoutes(db *mgo.Database) (*fasthttprouter.Router, error) {
 		return router, err
 	}
 
+	_, prErr := setProtectedGets(router, db)
+
+	if prErr != nil {
+		return router, prErr
+	}
+
 	_, dErr := setDeletes(router, db)
 
 	if dErr != nil {
@@ -44,6 +50,22 @@ func SetupAccountRoutes(db *mgo.Database) (*fasthttprouter.Router, error) {
 
 func setGets(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
 	req, err := NewRequestServer(":username", "/api/accounts", "GET", db, db, "username")
+
+	if err != nil {
+		return nil, err
+	}
+
+	router, err := req.AttemptToServeRequestsWithRouter(initRouter)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return router, nil
+}
+
+func setProtectedGets(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
+	req, err := NewRequestServer(":username/:password", "/api/accounts", "GET", db, db, "username/:password")
 
 	if err != nil {
 		return nil, err

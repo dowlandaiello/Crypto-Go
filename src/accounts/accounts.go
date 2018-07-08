@@ -34,7 +34,12 @@ type Account struct {
 // NewAccount - create, return new account
 func NewAccount(username string, email string, pass string) Account {
 	pub, priv, _ := wallets.NewWallets()
-	encrypted := encryptPrivateKeys(priv, pass)
+	encrypted, err := encryptPrivateKeys(priv, pass)
+
+	if err != nil {
+		return Account{}
+	}
+
 	pass = common.HashAndSalt([]byte(pass))
 	rAccount := Account{Balance: 0, Username: username, Email: email, PassHash: pass, WalletAddresses: pub, WalletBalances: []float64{float64(0), float64(0), float64(0)}, WalletHashedKeys: encrypted}
 	return rAccount
@@ -173,33 +178,49 @@ func (acc *Account) checkBalance(symbol string) (float64, error) {
 	return 0, errors.New("invalid symbol")
 }
 
-func decryptPrivateKeys(encryptedKeys []string, key string) []string {
+// DecryptPrivateKeys - decrypts private keys
+func DecryptPrivateKeys(encryptedKeys []string, key string) ([]string, error) {
 	decrypted := []string{}
 
 	x := 0
 
-	for x != len(encryptedKeys)-1 {
-		singleDecrypted, _ := common.Decrypt([]byte(encryptedKeys[x]), []byte(key))
+	for x != len(encryptedKeys) {
+		decoded, err := base64.URLEncoding.DecodeString(encryptedKeys[x])
+
+		if err != nil {
+			return []string{}, err
+		}
+
+		singleDecrypted, err := common.Decrypt([]byte(key), decoded)
+
+		if err != nil {
+			return []string{}, err
+		}
+
 		decrypted = append(decrypted, base64.URLEncoding.EncodeToString(singleDecrypted))
 		x++
 	}
 
-	return decrypted
+	return decrypted, nil
 }
 
-func encryptPrivateKeys(privatekeys []string, key string) []string {
+func encryptPrivateKeys(privatekeys []string, key string) ([]string, error) {
 	encrypted := []string{}
 
 	x := 0
 
 	for x != len(privatekeys) {
-		singleEncrypted, _ := common.Encrypt([]byte(key), []byte(privatekeys[x]))
+		singleEncrypted, err := common.Encrypt([]byte(key), []byte(privatekeys[x]))
+
+		if err != nil {
+			return []string{}, err
+		}
 
 		encrypted = append(encrypted, base64.URLEncoding.EncodeToString(singleEncrypted))
 		x++
 	}
 
-	return encrypted
+	return encrypted, nil
 }
 
 func updateAccount(database *mgo.Database, account Account, update *Account) error {
