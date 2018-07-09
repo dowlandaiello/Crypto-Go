@@ -84,10 +84,6 @@ Create an Order:
 POST: http://180.6.212.149:8080/api/orders/${pair}/${type}/${amount}/${username}/${password}
 ```
 
-```JSON
-request: returns JSON order object
-```
-
 Cancel an Order:
 
 ```BASH
@@ -100,8 +96,10 @@ Fetch Order Information:
 GET: http://108.6.212.149:8080/api/orders/${pair}/${orderid}
 ```
 
-```JSON
-OrderID: can be retrieved via account orders or on creation
+Fetch All Orders for Trading Pair:
+
+```BASH
+GET: http://108.6.212.149:8080/api/orders/${pair}
 ```
 
 #### General Order Parameters
