@@ -53,7 +53,7 @@ POST: http://180.6.212.149:8080/api/orders/${pair}/${type}/${amount}/${user}/${p
 ```
 
 ```JSON
-{"request": "returns JSON order object"}
+request: returns JSON order object
 ```
 
 Cancel an Order:
@@ -69,7 +69,7 @@ GET: http://108.6.212.149:8080/api/orders/${pair}/${orderid}
 ```
 
 ```JSON
-${"OrderID": "can be retrieved via account orders or on creation"}
+OrderID: can be retrieved via account orders or on creation
 ```
 
 ## Definitions
