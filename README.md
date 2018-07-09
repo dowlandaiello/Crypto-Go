@@ -71,7 +71,7 @@ POST: http://108.6.212.149:8080/api/deposit/${username}/${symbol}
 ```
 
 ```JSON
-4. symbol: trading symbol ({"BTC", "LTC", "ETH"})
+4. symbol: trading symbol ("BTC", "LTC", "ETH")
 ```
 
 ### Orders
