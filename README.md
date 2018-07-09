@@ -50,6 +50,30 @@ Delete an Account:
 DELETE: http://108.6.212.149:8080/api/accounts/${username}/${password}
 ```
 
+Fetch an Accounts Balance:
+
+```BASH
+POST: http://108.6.212.149:8080/api/deposit/${username}/${symbol}
+```
+
+#### General Account Request Parameters
+
+```JSON
+1. username: username for account
+```
+
+```JSON
+2. email: specified email for account
+```
+
+```JSON
+3. password: account password
+```
+
+```JSON
+4. symbol: trading symbol ({"BTC", "LTC", "ETH"})
+```
+
 ### Orders
 
 ### Route Specifications
