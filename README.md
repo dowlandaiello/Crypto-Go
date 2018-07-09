@@ -81,7 +81,7 @@ POST: http://108.6.212.149:8080/api/deposit/${username}/${symbol}
 Create an Order:
 
 ```BASH
-POST: http://180.6.212.149:8080/api/orders/${pair}/${type}/${amount}/${username}/${password}
+POST: http://180.6.212.149:8080/api/orders/${pair}/${type}/${amount}/${fillprice}/${username}/${password}
 ```
 
 Cancel an Order:
@@ -121,11 +121,15 @@ GET: http://108.6.212.149:8080/api/orders/${pair}
 ```
 
 ```JSON
-5. password: password of user to issue order
+5. fillprice: price at which order is to fill
 ```
 
 ```JSON
-6. orderid: id of order, found under JSON tag "orderid"
+6. password: password of user to issue order
+```
+
+```JSON
+7. orderid: id of order, found under JSON tag "orderid"
 ```
 
 ## Definitions
