@@ -50,7 +50,7 @@ Delete an Account:
 DELETE: http://108.6.212.149:8080/api/accounts/${username}/${password}
 ```
 
-Fetch an Accounts Balance:
+Fetch an Account's Balance:
 
 ```BASH
 POST: http://108.6.212.149:8080/api/deposit/${username}/${symbol}
