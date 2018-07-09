@@ -1,5 +1,44 @@
 # Api
 
+## Specifications
+
+### Global
+```
+108.6.212.149:8080/api/
+```
+
+#### Request Formats
+
+In callback URLs, ${} denotes a parameter. For example, take the following request:
+```
+/api/accounts/${username}
+```
+This request calls for a username, of which would be specified by replacing '${username}' with a username. All requests will return a json-formatted object.
+
+### Authentication
+
+All-Users (base callback):
+```
+GET: 108.6.212.149:8080/api/accounts
+```
+
+Create an Account:
+```
+POST: 108.6.212.149:8080/api/accounts/${username}/${email}/${password}
+```
+
+Fetch information for an Account:
+```
+GET: 108.6.212.149:8080/api/accounts/${username}
+```
+
+### Orders
+
+Create an Order:
+```
+
+```
+
 ## Definitions
 
 ### Exchange

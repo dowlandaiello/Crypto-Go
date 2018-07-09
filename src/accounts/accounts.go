@@ -56,8 +56,7 @@ func (acc Account) Deposit(symbol string, db *mgo.Database) error {
 		prevBalance := acc.Balance
 
 		for received != true {
-
-			if time.Since(startTime) > common.TxTimeout*time.Second {
+			if time.Since(startTime) > common.TxTimeout*time.Minute {
 				break
 			}
 
@@ -106,7 +105,7 @@ func findAccount(database *mgo.Database, username string) (Account, error) {
 func (acc *Account) checkBalance(symbol string) (float64, error) {
 	if common.StringInSlice(symbol, common.AvailableSymbols) {
 		if strings.ToLower(symbol) == "btc" {
-			response, err := http.Get("https://blockchain.info/balance?active=" + acc.WalletAddresses[2])
+			response, err := http.Get("https://blockchain.info/balance?active=" + acc.WalletAddresses[0])
 			if err != nil {
 				return float64(0), err
 			}
@@ -150,7 +149,7 @@ func (acc *Account) checkBalance(symbol string) (float64, error) {
 
 			return val / 100000000, nil
 		} else if strings.ToLower(symbol) == "eth" {
-			response, err := http.Get("https://api.etherscan.io/api?module=account&action=balance&address=" + acc.WalletAddresses[0] + "&tag=latest&apikey=" + common.EtherscanToken)
+			response, err := http.Get("https://api.etherscan.io/api?module=account&action=balance&address=" + acc.WalletAddresses[2] + "&tag=latest&apikey=" + common.EtherscanToken)
 			if err != nil {
 				return float64(0), err
 			}

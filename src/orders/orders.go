@@ -12,29 +12,30 @@ import (
 
 // Order - definition of order, fields attributed to a single order
 type Order struct {
-	Filled bool `json:"filled"`
+	Filled    bool      `json:"filled"`
+	FillTime  time.Time `json:"filltime"`
+	FillPrice float64   `json:"fillprice"` // Set price for order to fill at
 
-	IssuanceTime time.Time `json:"issuancetime"`
-	FillTime     time.Time `json:"filletime"`
+	IssuanceTime time.Time `json:"issuancetime"` // IssuanceTime - time at which order is created
 
 	Amount float64 `json:"amount"`
 
-	OrderType string     `json:"ordertype"`
+	OrderType string     `json:"ordertype"` // OrderType - BUY, SELL
 	OrderFee  float64    `json:"orderfee"`
-	OrderPair pairs.Pair `json:"tradingpair"`
+	OrderPair pairs.Pair `json:"tradingpair"` // OrderPair - startingpair (BTC, ETH, LTC), endingpair (BTC, ETH, LTC)
 
-	Issuer *accounts.Account `json:"issuer"`
+	Issuer *accounts.Account `json:"issuer"` // Account creating order
 
-	OrderID string `json:"orderid"`
+	OrderID string `json:"orderid"` // Order's hash
 }
 
 // NewOrder - creates, retursn new instance of order struct
-func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pair, amount float64) (Order, error) {
-	ordertype = strings.ToUpper(ordertype)
-	if amount < account.WalletBalances[common.IndexInSlice(tradingpair.StartingSymbol, []string{"BTC", "LTC", "ETH"})] {
+func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pair, amount float64, fillprice float64) (Order, error) {
+	ordertype = strings.ToUpper(ordertype)                                                                               // Used to check validity of order type
+	if amount < account.WalletBalances[common.IndexInSlice(tradingpair.StartingSymbol, []string{"BTC", "LTC", "ETH"})] { // Checks that amount is not more than account's balance
 		rOrder := Order{Filled: false, IssuanceTime: time.Now().UTC(), Amount: (1.0 - common.FeeRate) * amount, OrderType: ordertype, OrderPair: tradingpair, Issuer: account, OrderID: "", OrderFee: common.FeeRate * amount}
 
-		hash, err := common.Hash(rOrder)
+		hash, err := common.Hash(rOrder) // Creates order hash
 
 		if err != nil {
 			return rOrder, err
@@ -42,27 +43,19 @@ func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pai
 
 		rOrder.OrderID = hash
 
-		account.Orders = append(account.Orders, hash)
+		account.Orders = append(account.Orders, hash) // Appends
 
-		if tradingpair.EndingSymbol == "BTC" {
-			account.WalletBalances[0] += rOrder.Amount
-		} else if tradingpair.EndingSymbol == "LTC" {
-			account.WalletBalances[1] += rOrder.Amount
-		} else if tradingpair.EndingSymbol == "ETH" {
-			account.WalletBalances[2] += rOrder.Amount
-		}
-
-		if tradingpair.StartingSymbol == "BTC" {
-			account.WalletBalances[0] -= rOrder.Amount
-		} else if tradingpair.StartingSymbol == "LTC" {
-			account.WalletBalances[1] -= rOrder.Amount
-		} else if tradingpair.StartingSymbol == "ETH" {
-			account.WalletBalances[2] -= rOrder.Amount
-		}
-
-		account.Balance -= (rOrder.OrderFee + rOrder.Amount)
+		//account.Balance -= (rOrder.OrderFee + rOrder.Amount) // No clue
 
 		return rOrder, nil
 	}
-	return Order{}, errors.New("insufficient balance")
+	return Order{}, errors.New("insufficient balance") // Triggered on insufficient balance, nil order
+}
+
+// FillOrder - fills order
+func FillOrder(order *Order) {
+	if order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.StartingSymbol, common.AvailableSymbols)] >= (order.Amount + order.OrderFee) { // Checks that order value is not more than account balance
+		order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.EndingSymbol, common.AvailableSymbols)] += order.Amount   // Adds actual order amount (not including fees) to wallet
+		order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.StartingSymbol, common.AvailableSymbols)] -= order.Amount // Subtracts order value from wallet
+	}
 }

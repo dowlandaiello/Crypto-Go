@@ -204,26 +204,31 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 			}
 		}
 	} else if common.StringInSlice("pair", keys) {
-		acc, err := findAccount(request.ElementDb, values[3])
+		acc, err := findAccount(request.ElementDb, values[4])
 
 		if err == nil {
-			if common.ComparePasswords(acc.PassHash, []byte(values[4])) {
+			if common.ComparePasswords(acc.PassHash, []byte(values[5])) {
 				split := strings.Split(values[0], "-")
 				pair := pairs.NewPair(split[0], split[1])
 				amount, _ := strconv.ParseFloat(values[2], 64)
-				order, _ := orders.NewOrder(&acc, values[1], pair, amount)
-
-				err = addOrder(request.ElementDb, &order)
+				fillprice, _ := strconv.ParseFloat(values[3], 64)
+				order, err := orders.NewOrder(&acc, values[1], pair, amount, fillprice)
 
 				if err != nil {
-					fmt.Fprintf(ctx, err.Error())
+					fmt.Fprintln(ctx, err.Error())
 				} else {
-					json, err := json.MarshalIndent(order, "", "  ")
+					err = addOrder(request.ElementDb, &order)
 
 					if err != nil {
 						fmt.Fprintf(ctx, err.Error())
 					} else {
-						fmt.Fprintf(ctx, string(json[:]))
+						json, err := json.MarshalIndent(order, "", "  ")
+
+						if err != nil {
+							fmt.Fprintf(ctx, err.Error())
+						} else {
+							fmt.Fprintf(ctx, string(json[:]))
+						}
 					}
 				}
 			}

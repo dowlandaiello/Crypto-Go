@@ -265,3 +265,8 @@ func Decrypt(key, text []byte) ([]byte, error) {
 	}
 	return data, nil
 }
+
+// CheckPrice - checks price of asset
+func CheckPrice(symbol string) (float64, error) {
+	return float64(0), nil
+}
