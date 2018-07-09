@@ -32,10 +32,16 @@ Create an Account:
 POST: http://108.6.212.149:8080/api/accounts/${username}/${email}/${password}
 ```
 
-Fetch information for an Account:
+Fetch Account Information:
 
 ```BASH
 GET: http://108.6.212.149:8080/api/accounts/${username}
+```
+
+Fetch Account Wallet Private Keys:
+
+```BASH
+GET: http://108.6.212.149:8080/api/accounts/${username}/${password}
 ```
 
 Delete an Account:
@@ -51,7 +57,7 @@ DELETE: http://108.6.212.149:8080/api/accounts/${username}/${password}
 Create an Order:
 
 ```BASH
-POST: http://180.6.212.149:8080/api/orders/${pair}/${type}/${amount}/${user}/${pass}
+POST: http://180.6.212.149:8080/api/orders/${pair}/${type}/${amount}/${username}/${password}
 ```
 
 ```JSON
@@ -61,10 +67,10 @@ request: returns JSON order object
 Cancel an Order:
 
 ```BASH
-DELETE: http://108.6.212.149:8080/api/accounts/${pair}/${id}/${user}/${pass}
+DELETE: http://108.6.212.149:8080/api/accounts/${pair}/${id}/${username}/${password}
 ```
 
-Fetch information on an Order:
+Fetch Order Information:
 
 ```BASH
 GET: http://108.6.212.149:8080/api/orders/${pair}/${orderid}
@@ -89,11 +95,11 @@ OrderID: can be retrieved via account orders or on creation
 ```
 
 ```JSON
-4. user: username of user to issue order (e.g. "satoshi")
+4. ususernameer: username of user to issue order (e.g. "satoshi")
 ```
 
 ```JSON
-5. pass: password of user to issue order
+5. password: password of user to issue order
 ```
 
 ```JSON
