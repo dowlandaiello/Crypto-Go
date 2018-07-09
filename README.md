@@ -46,6 +46,8 @@ DELETE: http://108.6.212.149:8080/api/accounts/${username}/${password}
 
 ### Orders
 
+### Route Specifications
+
 Create an Order:
 
 ```BASH
@@ -70,6 +72,32 @@ GET: http://108.6.212.149:8080/api/orders/${pair}/${orderid}
 
 ```JSON
 OrderID: can be retrieved via account orders or on creation
+```
+
+#### General Order Parameters
+
+```JSON
+1. pair: specific trading pair (e.g. "BTC-ETH")
+```
+
+```JSON
+2. type: string specifying buy or sell (e.g. "BUY")
+```
+
+```JSON
+3. amount: specifies amount to trade, can have decimal
+```
+
+```JSON
+4. user: username of user to issue order (e.g. "satoshi")
+```
+
+```JSON
+5. pass: password of user to issue order
+```
+
+```JSON
+6. orderid: id of order, found under JSON tag "orderid"
 ```
 
 ## Definitions
