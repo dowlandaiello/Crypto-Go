@@ -3,40 +3,73 @@
 ## Specifications
 
 ### Global
-```
-108.6.212.149:8080/api/
+
+```BASH
+http://108.6.212.149:8080/api/
 ```
 
 #### Request Formats
 
 In callback URLs, ${} denotes a parameter. For example, take the following request:
+
+```BASH
+http://108.6.212.149:8080/api/accounts/${username}
 ```
-/api/accounts/${username}
-```
-This request calls for a username, of which would be specified by replacing '${username}' with a username. All requests will return a json-formatted object.
+
+This request calls for a username, of which would be specified by replacing '${username}' with a username. All requests will return a JSON-formatted object.
 
 ### Authentication
 
 All-Users (base callback):
-```
-GET: 108.6.212.149:8080/api/accounts
+
+```BASH
+GET: http://108.6.212.149:8080/api/accounts
 ```
 
 Create an Account:
-```
-POST: 108.6.212.149:8080/api/accounts/${username}/${email}/${password}
+
+```BASH
+POST: http://108.6.212.149:8080/api/accounts/${username}/${email}/${password}
 ```
 
 Fetch information for an Account:
+
+```BASH
+GET: http://108.6.212.149:8080/api/accounts/${username}
 ```
-GET: 108.6.212.149:8080/api/accounts/${username}
+
+Delete an Account:
+
+```BASH
+DELETE: http://108.6.212.149:8080/api/accounts/${username}/${password}
 ```
 
 ### Orders
 
 Create an Order:
+
+```BASH
+POST: http://180.6.212.149:8080/api/orders/${pair}/${type}/${amount}/${user}/${pass}
 ```
 
+```JSON
+{request}: returns JSON order object
+```
+
+Cancel an Order:
+
+```BASH
+DELETE: http://108.6.212.149:8080/api/accounts/${pair}/${id}/${user}/${pass}
+```
+
+Fetch information on an Order:
+
+```BASH
+GET: http://108.6.212.149:8080/api/orders/${pair}/${orderid}
+```
+
+```JSON
+${OrderID}: can be retrieved via account orders or on creation
 ```
 
 ## Definitions
