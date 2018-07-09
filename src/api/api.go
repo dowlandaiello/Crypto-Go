@@ -203,7 +203,7 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 				fmt.Fprintf(ctx, string(json[:]))
 			}
 		}
-	} else if common.StringInSlice("pair", keys) {
+	} else if common.StringInSlice("pair", keys) && !strings.Contains(request.BaseElementLocation, "fill") {
 		acc, err := findAccount(request.ElementDb, values[4])
 
 		if err == nil {
@@ -234,7 +234,6 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 			}
 		}
 	} else if common.StringInSlice("symbol", keys) {
-
 		acc, err := findAccount(request.ElementDb, values[0])
 
 		if err == nil {
@@ -256,7 +255,25 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 		} else {
 			fmt.Fprintf(ctx, err.Error())
 		}
+	} else if strings.Contains(request.BaseElementLocation, "fill") {
+		split := strings.Split(values[0], "-")
+		pair := pairs.NewPair(split[0], split[1])
+		order, err := findOrder(request.ElementDb, values[1], pair)
+
+		if err != nil {
+			fmt.Fprintln(ctx, err.Error())
+		} else {
+			orders.FillOrder(order)
+			err := removeOrder(request.ElementDb, order)
+
+			if err != nil {
+				fmt.Fprintf(ctx, err.Error())
+			} else {
+				fmt.Fprint(ctx, "order filled")
+			}
+		}
 	}
+	fmt.Fprintf(ctx, errors.New("; invalid request").Error())
 }
 
 // HandleGETCollection - handle GET requests for collections

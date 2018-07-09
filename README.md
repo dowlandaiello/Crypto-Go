@@ -84,6 +84,10 @@ Create an Order:
 POST: http://180.6.212.149:8080/api/orders/${pair}/${type}/${amount}/${fillprice}/${username}/${password}
 ```
 
+```JSON
+Note: before creating an order, make sure to fetch the balance of an account
+```
+
 Cancel an Order:
 
 ```BASH

@@ -18,7 +18,7 @@ func main() {
 /*
 	TODO:
 		- Handle UPDATE requests
-		- Handle onchain wallet deposits
+		- Add Order Fill Method Routes
 		- On deployment, check for non-testnet
 		- Solution to no main wallet, use 0 confs
 		- Add API methods to get current price of certain assets

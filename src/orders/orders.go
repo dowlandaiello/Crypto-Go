@@ -26,13 +26,13 @@ type Order struct {
 
 	Issuer *accounts.Account `json:"issuer"` // Account creating order
 
-	OrderID string `json:"orderid"` // Order's hash
+	OrderID string `json:orderid` // Order's hash
 }
 
 // NewOrder - creates, retursn new instance of order struct
 func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pair, amount float64, fillprice float64) (Order, error) {
-	ordertype = strings.ToUpper(ordertype)                                                                               // Used to check validity of order type
-	if amount < account.WalletBalances[common.IndexInSlice(tradingpair.StartingSymbol, []string{"BTC", "LTC", "ETH"})] { // Checks that amount is not more than account's balance
+	ordertype = strings.ToUpper(ordertype)                                                                                // Used to check validity of order type
+	if amount <= account.WalletBalances[common.IndexInSlice(tradingpair.StartingSymbol, []string{"BTC", "LTC", "ETH"})] { // Checks that amount is not more than account's balance
 		rOrder := Order{Filled: false, IssuanceTime: time.Now().UTC(), Amount: (1.0 - common.FeeRate) * amount, OrderType: ordertype, OrderPair: tradingpair, Issuer: account, OrderID: "", OrderFee: common.FeeRate * amount}
 
 		hash, err := common.Hash(rOrder) // Creates order hash
@@ -55,7 +55,11 @@ func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pai
 // FillOrder - fills order
 func FillOrder(order *Order) {
 	if order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.StartingSymbol, common.AvailableSymbols)] >= (order.Amount + order.OrderFee) { // Checks that order value is not more than account balance
+		order.Filled = true
+		order.FillTime = time.Now().UTC()
 		order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.EndingSymbol, common.AvailableSymbols)] += order.Amount   // Adds actual order amount (not including fees) to wallet
 		order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.StartingSymbol, common.AvailableSymbols)] -= order.Amount // Subtracts order value from wallet
+
+		//TODO: move assets
 	}
 }
