@@ -117,7 +117,7 @@ GET: http://108.6.212.149:8080/api/orders/${pair}
 ```
 
 ```JSON
-4. ususernameer: username of user to issue order (e.g. "satoshi")
+4. username: username of user to issue order (e.g. "satoshi")
 ```
 
 ```JSON
