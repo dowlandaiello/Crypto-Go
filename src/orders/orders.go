@@ -2,8 +2,11 @@ package orders
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
+
+	"github.com/mitsukomegumi/Crypto-Go/src/market"
 
 	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
 	"github.com/mitsukomegumi/Crypto-Go/src/common"
@@ -31,8 +34,13 @@ type Order struct {
 
 // NewOrder - creates, retursn new instance of order struct
 func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pair, amount float64, fillprice float64) (Order, error) {
-	ordertype = strings.ToUpper(ordertype)                                                                                // Used to check validity of order type
-	if amount <= account.WalletBalances[common.IndexInSlice(tradingpair.StartingSymbol, []string{"BTC", "LTC", "ETH"})] { // Checks that amount is not more than account's balance
+	currentPrice, _ := market.CheckPrice(tradingpair)
+
+	ordertype = strings.ToUpper(ordertype) // Used to check validity of order type
+
+	fmt.Println("current " + tradingpair.ToString() + " price: " + common.FloatToString(currentPrice))
+
+	if amount*fillprice <= account.WalletBalances[common.IndexInSlice(tradingpair.StartingSymbol, []string{"BTC", "LTC", "ETH"})] && tradingpair.StartingSymbol != tradingpair.EndingSymbol { // Checks that amount is not more than account's balance
 		rOrder := Order{Filled: false, FillTime: time.Now().UTC(), FillPrice: fillprice, IssuanceTime: time.Now().UTC(), Amount: (1.0 - common.FeeRate) * amount, OrderType: ordertype, OrderPair: tradingpair, Issuer: account, OrderID: "", OrderFee: common.FeeRate * amount}
 
 		hash, err := common.Hash(rOrder) // Creates order hash
@@ -53,13 +61,22 @@ func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pai
 }
 
 // FillOrder - fills order
-func FillOrder(order *Order) {
-	if order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.StartingSymbol, common.AvailableSymbols)] >= (order.Amount + order.OrderFee) { // Checks that order value is not more than account balance
+func FillOrder(order *Order) error {
+	currentPrice, err := market.CheckPrice(order.OrderPair)
+
+	fmt.Println("current " + order.OrderPair.ToString() + " price: " + common.FloatToString(currentPrice))
+
+	if err != nil {
+		return err
+	}
+
+	if order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.StartingSymbol, common.AvailableSymbols)] >= ((order.Amount*currentPrice)+(order.OrderFee*currentPrice)) && currentPrice == order.FillPrice { // Checks that order value is not more than account balance
 		order.Filled = true
 		order.FillTime = time.Now().UTC()
-		order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.EndingSymbol, common.AvailableSymbols)] += order.Amount   // Adds actual order amount (not including fees) to wallet
-		order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.StartingSymbol, common.AvailableSymbols)] -= order.Amount // Subtracts order value from wallet
+		order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.EndingSymbol, common.AvailableSymbols)] += order.Amount                      // Adds actual order amount (not including fees) to wallet
+		order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.StartingSymbol, common.AvailableSymbols)] -= (order.Amount + order.OrderFee) // Subtracts order value from wallet
 
 		//TODO: move assets
 	}
+	return errors.New("invalid request; insufficient balance or invalid fill price")
 }

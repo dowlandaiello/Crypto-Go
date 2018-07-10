@@ -17,10 +17,9 @@ func main() {
 
 /*
 	TODO:
+		- Add Prices to API
 		- Handle UPDATE requests
-		- Add Order Fill Method Routes
 		- On deployment, check for non-testnet
-		- Solution to no main wallet, use 0 confs
 		- Add API methods to get current price of certain assets
 		- Check that an order's amount does not exceed the amount of coins that can be bought at a price
 */

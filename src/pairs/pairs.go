@@ -22,3 +22,8 @@ func NewPair(startingSymbol string, endingSymbol string) Pair {
 	}
 	return Pair{}
 }
+
+// ToString - converts trading pair to string
+func (pair Pair) ToString() string {
+	return pair.StartingSymbol + "-" + pair.EndingSymbol
+}

@@ -14,6 +14,7 @@ import (
 	"log"
 	"math/rand"
 	"reflect"
+	"strconv"
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -55,15 +56,22 @@ type EtherscanRequest struct {
 // BlockcypherRequest - request struct for blockcypher.com
 // NOTE: all balances are in satoshis
 type BlockcypherRequest struct {
-	Address          string `json:"address"`
-	Received         int    `json:"total_received"`
-	Sent             int    `json:"total_sent"`
-	SatBalance       int    `json:"balance"`
-	UncomfSatBalance int    `json:"unconfirmed_balance"`
-	FinalSatBalance  int    `json:"final_balance"`
-	TxCount          int    `json:"n_tx"`
-	UncomfTxCount    int    `json:"unconfirmed_n_tx"`
-	FinalTxCount     int    `json:"final_n_tx"`
+	Address          string  `json:"address"`
+	Received         float64 `json:"total_received"`
+	Sent             float64 `json:"total_sent"`
+	SatBalance       float64 `json:"balance"`
+	UncomfSatBalance float64 `json:"unconfirmed_balance"`
+	FinalSatBalance  float64 `json:"final_balance"`
+	TxCount          int     `json:"n_tx"`
+	UncomfTxCount    int     `json:"unconfirmed_n_tx"`
+	FinalTxCount     int     `json:"final_n_tx"`
+}
+
+// CryptoCompareRequest - request struct for cryptocompare api
+type CryptoCompareRequest struct {
+	BitcoinPrice  float64 `json:"BTC"`
+	LitecoinPrice float64 `json:"LTC"`
+	EthereumPrice float64 `json:"ETH"`
 }
 
 // Hash - hash specified interface, return string
@@ -266,7 +274,7 @@ func Decrypt(key, text []byte) ([]byte, error) {
 	return data, nil
 }
 
-// CheckPrice - checks price of asset
-func CheckPrice(symbol string) (float64, error) {
-	return float64(0), nil
+// FloatToString - converts float to string
+func FloatToString(f float64) string {
+	return strconv.FormatFloat(f, 'f', 6, 64)
 }

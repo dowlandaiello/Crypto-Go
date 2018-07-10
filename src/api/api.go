@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mitsukomegumi/Crypto-Go/src/market"
+
 	"github.com/mitsukomegumi/Crypto-Go/src/pairs"
 
 	"github.com/mitsukomegumi/Crypto-Go/src/orders"
@@ -45,6 +47,8 @@ func SetupRoutes(database *mgo.Database) error {
 	}
 
 	SetupOrderRoutes(router, database)
+
+	SetupMarketRoutes(router, database)
 
 	err = fasthttp.ListenAndServe(":8080", router.Handler)
 
@@ -97,7 +101,7 @@ func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
 			if common.ComparePasswords(acc.PassHash, []byte(values[3])) {
 				split := strings.Split(values[0], "-")
 				pair := pairs.NewPair(split[0], split[1])
-				order, err := findOrder(request.ElementDb, request.ElementDb.C(values[0]), values[1], pair)
+				order, err := findOrder(request.ElementDb, values[1], pair)
 
 				if err != nil {
 					fmt.Fprintf(ctx, err.Error())
@@ -155,6 +159,17 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 			} else {
 				fmt.Fprintf(ctx, "incorrect password")
 			}
+		}
+	} else if strings.Contains(request.Dynamics, "pair") {
+		strVal := strings.ToUpper(ctx.UserValue(request.Dynamics).(string))
+		split := strings.Split(strVal, "-")
+
+		currentPrice, err := market.CheckPrice(pairs.NewPair(split[0], split[1]))
+
+		if err != nil {
+			fmt.Fprintf(ctx, err.Error())
+		} else {
+			fmt.Fprintf(ctx, common.FloatToString(currentPrice))
 		}
 	} else {
 		val, err := findValue(request.ElementDb, collection, strings.ToLower(key), value)
@@ -259,8 +274,14 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 		split := strings.Split(values[0], "-")
 		pair := pairs.NewPair(split[0], split[1])
 
-		order, _ := findOrder(request.ElementDb, request.ElementDb.C(values[0]), values[1], pair)
+		order, _ := findOrder(request.ElementDb, values[1], pair)
+
+		fAcc, _ := findAccount(request.ElementDb, order.Issuer.Username)
+
 		orders.FillOrder(order)
+
+		updateAccount(request.ElementDb, fAcc, order.Issuer)
+
 		removeOrder(request.ElementDb, order)
 
 		fmt.Fprint(ctx, "order filled")
