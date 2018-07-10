@@ -66,7 +66,7 @@ func (request RequestElement) Handle(ctx *fasthttp.RequestCtx) {
 
 // HandleDel - attempt to delete
 func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
-	keys := strings.Split(request.Dynamics, "/:")
+	keys := strings.Split(request.Dynamics, "?")
 	keys = append(keys[:0], keys[0+1:]...)
 
 	values := []string{}
@@ -121,7 +121,7 @@ func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
 
 // HandleVar - handle request, with dynamics
 func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
-	key := strings.Split(common.TrimLeftChar(request.ElementName), "/:")[0]
+	key := strings.Split(common.TrimLeftChar(request.ElementName), "?")[0]
 
 	value := ctx.UserValue(key).(string)
 
@@ -130,12 +130,12 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 	if strings.Contains(request.BaseElementLocation, "orders") {
 		collection = value
 
-		key = strings.Split(common.TrimLeftChar(request.ElementName), "/:")[1]
+		key = strings.Split(common.TrimLeftChar(request.ElementName), "?")[1]
 		value = ctx.UserValue(key).(string)
 	}
 
 	if strings.Contains(request.Dynamics, "password") && !strings.Contains(request.BaseElementLocation, "orders") {
-		passKey := strings.Split(common.TrimLeftChar(request.ElementName), "/:")[1]
+		passKey := strings.Split(common.TrimLeftChar(request.ElementName), "?")[1]
 
 		accVal, err := findAccount(request.ElementDb, ctx.UserValue(strings.ToLower(key)).(string))
 
@@ -190,7 +190,7 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 
 // HandlePost - handle POST request, with dynamics
 func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
-	keys := strings.Split(request.Dynamics, "/:")
+	keys := strings.Split(request.Dynamics, "?")
 	keys = append(keys[:0], keys[0+1:]...)
 
 	values := []string{}
@@ -198,7 +198,8 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 	x := 0
 
 	for x != len(keys) {
-		values = append(values, ctx.UserValue(keys[x]).(string))
+		fmt.Println(keys)
+		values = append(values, string(ctx.FormValue(keys[x])))
 		x++
 	}
 
@@ -305,7 +306,7 @@ func (request RequestElement) HandleGETCollection(ctx *fasthttp.RequestCtx) {
 	var collection interface{}
 	var collectionKey string
 
-	if strings.Contains(request.BaseElementLocation, "/:") {
+	if strings.Contains(request.BaseElementLocation, "?") {
 		collectionKey = strings.Split(request.BaseElementLocation, "/:")[1]
 
 		collection = ctx.UserValue(collectionKey)
@@ -336,27 +337,19 @@ func (request RequestElement) AttemptToServeRequestsWithRouter(router *fasthttpr
 	fmt.Println("atttempting to serve requests with handler: " + request.ElementName)
 
 	if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[0])) && request.Dynamics == "" {
-		fullPath := request.BaseElementLocation + "/" + request.ElementName
-
-		router.GET(fullPath, request.Handle)
+		router.GET(request.BaseElementLocation, request.Handle)
 
 		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[0])) && request.Dynamics != "" {
-		fullPath := request.BaseElementLocation + "/" + request.ElementName
-
-		router.GET(fullPath, request.HandleVar)
+		router.GET(request.BaseElementLocation, request.HandleVar)
 
 		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[1])) {
-		fullPath := request.BaseElementLocation + request.Dynamics
-
-		router.POST(fullPath, request.HandlePost)
+		router.POST(request.BaseElementLocation, request.HandlePost)
 
 		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[2])) {
-		fullPath := request.BaseElementLocation + request.Dynamics
-
-		router.DELETE(fullPath, request.HandleDel)
+		router.DELETE(request.BaseElementLocation, request.HandleDel)
 
 		return router, nil
 	}
@@ -368,32 +361,27 @@ func (request RequestElement) AttemptToServeRequestsWithRouter(router *fasthttpr
 func (request RequestElement) AttemptToServeRequests() (*fasthttprouter.Router, error) {
 	fmt.Println("atttempting to serve requests")
 	if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[0])) && request.Dynamics == "" {
-		fullPath := request.BaseElementLocation + "/" + request.ElementName
 		router := fasthttprouter.New()
 
-		router.GET(fullPath, request.Handle)
+		router.GET(request.BaseElementLocation, request.Handle)
 
 		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[0])) && request.Dynamics != "" {
-		fullPath := request.BaseElementLocation + "/" + request.ElementName
 		router := fasthttprouter.New()
 
-		router.GET(fullPath, request.HandleVar)
+		router.GET(request.BaseElementLocation, request.HandleVar)
 
 		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[1])) {
-		fullPath := request.BaseElementLocation + request.Dynamics
-
 		router := fasthttprouter.New()
 
-		router.POST(fullPath, request.HandlePost)
+		router.POST(request.BaseElementLocation, request.HandlePost)
 
 		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[2])) {
-		fullPath := request.BaseElementLocation + "/" + request.ElementName
 		router := fasthttprouter.New()
 
-		router.DELETE(fullPath, request.HandleDel)
+		router.DELETE(request.BaseElementLocation, request.HandleDel)
 
 		return router, nil
 	}
