@@ -3,6 +3,7 @@ package market
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -31,10 +32,13 @@ func CheckPrice(tradingpair pairs.Pair) (float64, error) {
 	}
 
 	if formatted.BitcoinPrice != 0 {
+		fmt.Println("\ncurrent " + tradingpair.ToString() + " price: " + common.FloatToString(formatted.BitcoinPrice))
 		return formatted.BitcoinPrice, nil
 	} else if formatted.LitecoinPrice != 0 {
+		fmt.Println("\ncurrent " + tradingpair.ToString() + " price: " + common.FloatToString(formatted.LitecoinPrice))
 		return formatted.LitecoinPrice, nil
 	} else if formatted.EthereumPrice != 0 {
+		fmt.Println("\ncurrent " + tradingpair.ToString() + " price: " + common.FloatToString(formatted.EthereumPrice))
 		return formatted.EthereumPrice, nil
 	}
 

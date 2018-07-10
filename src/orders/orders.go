@@ -40,7 +40,7 @@ func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pai
 
 	fmt.Println("current " + tradingpair.ToString() + " price: " + common.FloatToString(currentPrice))
 
-	if amount*fillprice <= account.WalletBalances[common.IndexInSlice(tradingpair.StartingSymbol, []string{"BTC", "LTC", "ETH"})] && tradingpair.StartingSymbol != tradingpair.EndingSymbol { // Checks that amount is not more than account's balance
+	if amount*fillprice <= account.WalletBalances[common.IndexInSlice(tradingpair.EndingSymbol, []string{"BTC", "LTC", "ETH"})] && tradingpair.StartingSymbol != tradingpair.EndingSymbol { // Checks that amount is not more than account's balance
 		rOrder := Order{Filled: false, FillTime: time.Now().UTC(), FillPrice: fillprice, IssuanceTime: time.Now().UTC(), Amount: (1.0 - common.FeeRate) * amount, OrderType: ordertype, OrderPair: tradingpair, Issuer: account, OrderID: "", OrderFee: common.FeeRate * amount}
 
 		hash, err := common.Hash(rOrder) // Creates order hash
@@ -64,19 +64,23 @@ func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pai
 func FillOrder(order *Order) error {
 	currentPrice, err := market.CheckPrice(order.OrderPair)
 
-	fmt.Println("current " + order.OrderPair.ToString() + " price: " + common.FloatToString(currentPrice))
+	fmt.Println("\ncurrent " + order.OrderPair.ToString() + " price: " + common.FloatToString(currentPrice))
 
 	if err != nil {
 		return err
 	}
 
-	if order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.StartingSymbol, common.AvailableSymbols)] >= ((order.Amount*currentPrice)+(order.OrderFee*currentPrice)) && currentPrice == order.FillPrice { // Checks that order value is not more than account balance
+	if order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.EndingSymbol, common.AvailableSymbols)] >= ((order.Amount*currentPrice)+(order.OrderFee*currentPrice)) && currentPrice == order.FillPrice { // Checks that order value is not more than account balance
+		fmt.Println("\norder filled at " + common.FloatToString(currentPrice) + " with destination of " + common.FloatToString(order.FillPrice))
 		order.Filled = true
 		order.FillTime = time.Now().UTC()
-		order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.EndingSymbol, common.AvailableSymbols)] += order.Amount                      // Adds actual order amount (not including fees) to wallet
-		order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.StartingSymbol, common.AvailableSymbols)] -= (order.Amount + order.OrderFee) // Subtracts order value from wallet
+		order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.StartingSymbol, common.AvailableSymbols)] += order.Amount                                            // Adds actual order amount (not including fees) to wallet
+		order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.EndingSymbol, common.AvailableSymbols)] -= (order.Amount*currentPrice + order.OrderFee*currentPrice) // Subtracts order value from wallet
+
+		return nil
 
 		//TODO: move assets
 	}
+	fmt.Println("order fill failed")
 	return errors.New("invalid request; insufficient balance or invalid fill price")
 }

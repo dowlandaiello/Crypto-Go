@@ -276,15 +276,27 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 
 		order, _ := findOrder(request.ElementDb, values[1], pair)
 
-		fAcc, _ := findAccount(request.ElementDb, order.Issuer.Username)
+		if *order != (orders.Order{}) {
+			fAcc, err := findAccount(request.ElementDb, order.Issuer.Username)
 
-		orders.FillOrder(order)
+			if err != nil {
+				fmt.Fprintf(ctx, err.Error())
+			} else {
+				err = orders.FillOrder(order)
 
-		updateAccount(request.ElementDb, fAcc, order.Issuer)
+				if err != nil {
+					fmt.Fprintf(ctx, err.Error())
+				} else {
+					updateAccount(request.ElementDb, fAcc, order.Issuer)
 
-		removeOrder(request.ElementDb, order)
+					removeOrder(request.ElementDb, order)
 
-		fmt.Fprint(ctx, "order filled")
+					fmt.Fprint(ctx, "order filled")
+				}
+			}
+		} else {
+			fmt.Fprintf(ctx, errors.New("invalid order").Error())
+		}
 	}
 }
 
