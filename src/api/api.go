@@ -97,7 +97,7 @@ func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
 			if common.ComparePasswords(acc.PassHash, []byte(values[3])) {
 				split := strings.Split(values[0], "-")
 				pair := pairs.NewPair(split[0], split[1])
-				order, err := findOrder(request.ElementDb, values[1], pair)
+				order, err := findOrder(request.ElementDb, request.ElementDb.C(values[0]), values[1], pair)
 
 				if err != nil {
 					fmt.Fprintf(ctx, err.Error())
@@ -258,22 +258,13 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 	} else if strings.Contains(request.BaseElementLocation, "fill") {
 		split := strings.Split(values[0], "-")
 		pair := pairs.NewPair(split[0], split[1])
-		order, err := findOrder(request.ElementDb, values[1], pair)
 
-		if err != nil {
-			fmt.Fprintln(ctx, err.Error())
-		} else {
-			orders.FillOrder(order)
-			err := removeOrder(request.ElementDb, order)
+		order, _ := findOrder(request.ElementDb, request.ElementDb.C(values[0]), values[1], pair)
+		orders.FillOrder(order)
+		removeOrder(request.ElementDb, order)
 
-			if err != nil {
-				fmt.Fprintf(ctx, err.Error())
-			} else {
-				fmt.Fprint(ctx, "order filled")
-			}
-		}
+		fmt.Fprint(ctx, "order filled")
 	}
-	fmt.Fprintf(ctx, errors.New("; invalid request").Error())
 }
 
 // HandleGETCollection - handle GET requests for collections

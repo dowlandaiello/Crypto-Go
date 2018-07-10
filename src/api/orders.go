@@ -115,7 +115,7 @@ func setGeneralRoutes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fas
 
 func addOrder(database *mgo.Database, order *orders.Order) error {
 
-	_, err := findOrder(database, order.OrderID, order.OrderPair)
+	_, err := findOrder(database, database.C(order.OrderPair.StartingSymbol+"-"+order.OrderPair.EndingSymbol), order.OrderID, order.OrderPair)
 
 	if err != nil {
 		c := database.C(order.OrderPair.StartingSymbol + "-" + order.OrderPair.EndingSymbol)
@@ -133,8 +133,9 @@ func addOrder(database *mgo.Database, order *orders.Order) error {
 
 func removeOrder(database *mgo.Database, order *orders.Order) error {
 	c := database.C(order.OrderPair.StartingSymbol + "-" + order.OrderPair.EndingSymbol)
+	orderRef, _ := findOrder(database, c, order.OrderID, order.OrderPair)
 
-	err := c.Remove(order)
+	err := c.Remove(orderRef)
 
 	if err != nil {
 		return err
@@ -143,8 +144,8 @@ func removeOrder(database *mgo.Database, order *orders.Order) error {
 	return nil
 }
 
-func findOrder(database *mgo.Database, id string, pair pairs.Pair) (*orders.Order, error) {
-	c := database.C(pair.StartingSymbol + "-" + pair.EndingSymbol)
+func findOrder(database *mgo.Database, collection *mgo.Collection, id string, pair pairs.Pair) (*orders.Order, error) {
+	c := collection
 
 	result := orders.Order{}
 
