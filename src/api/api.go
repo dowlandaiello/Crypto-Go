@@ -145,6 +145,10 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 		value = request.GetUserValue(key, ctx)
 	}
 
+	if strings.Contains(collection, "?") {
+		collection = strings.Split(collection, "?")[0]
+	}
+
 	if strings.Contains(request.Dynamics, "password") && !strings.Contains(request.BaseElementLocation, "orders") {
 		passKey := strings.Split(common.TrimLeftChar(request.ElementName), "?")[1]
 
@@ -258,6 +262,10 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 				} else {
 					err = addOrder(request.ElementDb, &order)
 
+					fAcc, _ := findAccount(request.ElementDb, values[4])
+
+					updateAccount(request.ElementDb, fAcc, &acc)
+
 					if err != nil {
 						fmt.Fprintf(ctx, err.Error())
 					} else {
@@ -330,7 +338,7 @@ func (request RequestElement) HandleGETCollection(ctx *fasthttp.RequestCtx) {
 	var collectionKey string
 
 	if strings.Contains(request.BaseElementLocation, "?") {
-		collectionKey = strings.Split(request.BaseElementLocation, "/:")[1]
+		collectionKey = strings.Split(request.BaseElementLocation, "?")[1]
 
 		collection = string(ctx.FormValue(collectionKey))
 	} else {

@@ -51,7 +51,7 @@ func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pai
 
 		rOrder.OrderID = hash
 
-		account.Orders = append(account.Orders, hash) // Appends
+		(*account).Orders = append(account.Orders, hash) // Appends
 
 		//account.Balance -= (rOrder.OrderFee + rOrder.Amount) // No clue
 
