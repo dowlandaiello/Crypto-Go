@@ -74,7 +74,7 @@ func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
 	x := 0
 
 	for x != len(keys) {
-		values = append(values, ctx.UserValue(keys[x]).(string))
+		values = append(values, string(ctx.FormValue(keys[x])))
 		x++
 	}
 
@@ -123,7 +123,7 @@ func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
 func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 	key := strings.Split(common.TrimLeftChar(request.ElementName), "?")[0]
 
-	value := ctx.UserValue(key).(string)
+	value := string(ctx.FormValue(key))
 
 	collection := strings.Split(request.BaseElementLocation, "/")[2]
 
@@ -131,19 +131,19 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 		collection = value
 
 		key = strings.Split(common.TrimLeftChar(request.ElementName), "?")[1]
-		value = ctx.UserValue(key).(string)
+		value = string(ctx.FormValue(key))
 	}
 
 	if strings.Contains(request.Dynamics, "password") && !strings.Contains(request.BaseElementLocation, "orders") {
 		passKey := strings.Split(common.TrimLeftChar(request.ElementName), "?")[1]
 
-		accVal, err := findAccount(request.ElementDb, ctx.UserValue(strings.ToLower(key)).(string))
+		accVal, err := findAccount(request.ElementDb, string(ctx.FormValue(strings.ToLower(key))))
 
 		if err != nil {
 			fmt.Fprintf(ctx, err.Error())
 		} else {
-			if common.ComparePasswords(accVal.PassHash, []byte(ctx.UserValue(passKey).(string))) {
-				val, err := accounts.DecryptPrivateKeys(accVal.WalletRawHashedKeys, ctx.UserValue(passKey).(string))
+			if common.ComparePasswords(accVal.PassHash, ctx.FormValue(passKey)) {
+				val, err := accounts.DecryptPrivateKeys(accVal.WalletRawHashedKeys, string(ctx.FormValue(passKey)))
 
 				if err != nil {
 					fmt.Fprintf(ctx, err.Error())
@@ -161,7 +161,7 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 			}
 		}
 	} else if strings.Contains(request.Dynamics, "pair") {
-		strVal := strings.ToUpper(ctx.UserValue(request.Dynamics).(string))
+		strVal := strings.ToUpper(string(ctx.FormValue(request.Dynamics)))
 		split := strings.Split(strVal, "-")
 
 		currentPrice, err := market.CheckPrice(pairs.NewPair(split[0], split[1]))
@@ -198,9 +198,35 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 	x := 0
 
 	for x != len(keys) {
-		fmt.Println(keys)
-		values = append(values, string(ctx.FormValue(keys[x])))
+		peekVal := string(ctx.PostArgs().Peek(keys[x]))
+
+		if peekVal == "" {
+			break
+		}
+
+		values = append(values, peekVal)
+
 		x++
+	}
+
+	if len(values) < 3 {
+		x = 0
+
+		nVals := []string{}
+
+		params := strings.Split(string(ctx.RequestURI()), request.BaseElementLocation)[1] // All user parameters
+
+		for x != len(keys) {
+			key := "?" + keys[x] + "=" // Key to search for in user params
+
+			userVal := strings.Split(params, key)[1]
+			formattedVal := strings.Split(userVal, "?")[0]
+
+			nVals = append(nVals, formattedVal)
+			x++
+		}
+
+		values = nVals
 	}
 
 	if common.StringInSlice("username", keys) && !common.StringInSlice("pair", keys) && !common.StringInSlice("symbol", keys) {
@@ -309,7 +335,7 @@ func (request RequestElement) HandleGETCollection(ctx *fasthttp.RequestCtx) {
 	if strings.Contains(request.BaseElementLocation, "?") {
 		collectionKey = strings.Split(request.BaseElementLocation, "/:")[1]
 
-		collection = ctx.UserValue(collectionKey)
+		collection = string(ctx.FormValue(collectionKey))
 	} else {
 		collection = strings.Split(request.BaseElementLocation, "api/")[1]
 	}
@@ -379,6 +405,7 @@ func (request RequestElement) AttemptToServeRequests() (*fasthttprouter.Router, 
 
 		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[2])) {
+
 		router := fasthttprouter.New()
 
 		router.DELETE(request.BaseElementLocation, request.HandleDel)
