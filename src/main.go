@@ -17,7 +17,6 @@ func main() {
 
 /*
 	TODO:
-		- Add Prices to API
 		- Handle UPDATE requests
 		- Add methods to get volume via API
 		- On deployment, check for non-testnet
