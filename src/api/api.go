@@ -174,7 +174,7 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 			}
 		}
 	} else if strings.Contains(request.Dynamics, "pair") {
-		strVal := strings.ToUpper(string(ctx.FormValue(request.Dynamics)))
+		strVal := strings.ToUpper(request.GetUserValue(common.TrimLeftChar(request.Dynamics), ctx))
 		split := strings.Split(strVal, "-")
 
 		currentPrice, err := market.CheckPrice(pairs.NewPair(split[0], split[1]))
@@ -495,10 +495,6 @@ func (request RequestElement) GetUserValue(key string, ctx *fasthttp.RequestCtx)
 		if initVal == "" || strings.Contains("?", initVal) {
 			params := strings.Split(string(ctx.RequestURI()), request.BaseElementLocation)[1] // All user parameters
 			formattedKey := "?" + key + "="                                                   // Key to search for in user params
-
-			if len(formattedKey) == 0 || len(params) == 0 {
-				return ""
-			}
 
 			userVal := strings.Split(params, formattedKey)[1]
 
