@@ -66,7 +66,7 @@ func (request RequestElement) Handle(ctx *fasthttp.RequestCtx) {
 
 // HandleDel - attempt to delete
 func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
-	keys := strings.Split(request.Dynamics, "/:")
+	keys := strings.Split(request.Dynamics, "?")
 	keys = append(keys[:0], keys[0+1:]...)
 
 	values := []string{}
@@ -74,8 +74,19 @@ func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
 	x := 0
 
 	for x != len(keys) {
-		values = append(values, ctx.UserValue(keys[x]).(string))
+		peekVal := string(ctx.PostArgs().Peek(keys[x]))
+
+		if peekVal == "" {
+			break
+		}
+
+		values = append(values, peekVal)
+
 		x++
+	}
+
+	if len(values) < 3 {
+		values, _ = request.GetUserValues(keys, ctx)
 	}
 
 	if common.StringInSlice("username", keys) && !common.StringInSlice("pair", keys) {
@@ -121,29 +132,35 @@ func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
 
 // HandleVar - handle request, with dynamics
 func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
-	key := strings.Split(common.TrimLeftChar(request.ElementName), "/:")[0]
+	key := strings.Split(common.TrimLeftChar(request.ElementName), "?")[0]
 
-	value := ctx.UserValue(key).(string)
+	value := request.GetUserValue(key, ctx)
 
 	collection := strings.Split(request.BaseElementLocation, "/")[2]
 
 	if strings.Contains(request.BaseElementLocation, "orders") {
 		collection = value
 
-		key = strings.Split(common.TrimLeftChar(request.ElementName), "/:")[1]
-		value = ctx.UserValue(key).(string)
+		key = strings.Split(common.TrimLeftChar(request.ElementName), "?")[1]
+		value = request.GetUserValue(key, ctx)
+	}
+
+	if strings.Contains(collection, "?") {
+		collection = strings.Split(collection, "?")[0]
 	}
 
 	if strings.Contains(request.Dynamics, "password") && !strings.Contains(request.BaseElementLocation, "orders") {
-		passKey := strings.Split(common.TrimLeftChar(request.ElementName), "/:")[1]
+		passKey := strings.Split(common.TrimLeftChar(request.ElementName), "?")[1]
 
-		accVal, err := findAccount(request.ElementDb, ctx.UserValue(strings.ToLower(key)).(string))
+		passVal := request.GetUserValue(strings.ToLower(passKey), ctx)
+
+		accVal, err := findAccount(request.ElementDb, request.GetUserValue("username", ctx))
 
 		if err != nil {
 			fmt.Fprintf(ctx, err.Error())
 		} else {
-			if common.ComparePasswords(accVal.PassHash, []byte(ctx.UserValue(passKey).(string))) {
-				val, err := accounts.DecryptPrivateKeys(accVal.WalletRawHashedKeys, ctx.UserValue(passKey).(string))
+			if common.ComparePasswords(accVal.PassHash, []byte(passVal)) {
+				val, err := accounts.DecryptPrivateKeys(accVal.WalletRawHashedKeys, string(passVal))
 
 				if err != nil {
 					fmt.Fprintf(ctx, err.Error())
@@ -161,7 +178,7 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 			}
 		}
 	} else if strings.Contains(request.Dynamics, "pair") {
-		strVal := strings.ToUpper(ctx.UserValue(request.Dynamics).(string))
+		strVal := strings.ToUpper(request.GetUserValue(common.TrimLeftChar(request.Dynamics), ctx))
 		split := strings.Split(strVal, "-")
 
 		currentPrice, err := market.CheckPrice(pairs.NewPair(split[0], split[1]))
@@ -190,7 +207,7 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 
 // HandlePost - handle POST request, with dynamics
 func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
-	keys := strings.Split(request.Dynamics, "/:")
+	keys := strings.Split(request.Dynamics, "?")
 	keys = append(keys[:0], keys[0+1:]...)
 
 	values := []string{}
@@ -198,8 +215,19 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 	x := 0
 
 	for x != len(keys) {
-		values = append(values, ctx.UserValue(keys[x]).(string))
+		peekVal := string(ctx.PostArgs().Peek(keys[x]))
+
+		if peekVal == "" {
+			break
+		}
+
+		values = append(values, peekVal)
+
 		x++
+	}
+
+	if len(values) < 2 {
+		values, _ = request.GetUserValues(keys, ctx)
 	}
 
 	if common.StringInSlice("username", keys) && !common.StringInSlice("pair", keys) && !common.StringInSlice("symbol", keys) {
@@ -233,6 +261,10 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 					fmt.Fprintln(ctx, err.Error())
 				} else {
 					err = addOrder(request.ElementDb, &order)
+
+					fAcc, _ := findAccount(request.ElementDb, values[4])
+
+					updateAccount(request.ElementDb, fAcc, &acc)
 
 					if err != nil {
 						fmt.Fprintf(ctx, err.Error())
@@ -305,10 +337,10 @@ func (request RequestElement) HandleGETCollection(ctx *fasthttp.RequestCtx) {
 	var collection interface{}
 	var collectionKey string
 
-	if strings.Contains(request.BaseElementLocation, "/:") {
-		collectionKey = strings.Split(request.BaseElementLocation, "/:")[1]
+	if strings.Contains(request.BaseElementLocation, "?") {
+		collectionKey = strings.Split(request.BaseElementLocation, "?")[1]
 
-		collection = ctx.UserValue(collectionKey)
+		collection = string(ctx.FormValue(collectionKey))
 	} else {
 		collection = strings.Split(request.BaseElementLocation, "api/")[1]
 	}
@@ -336,27 +368,19 @@ func (request RequestElement) AttemptToServeRequestsWithRouter(router *fasthttpr
 	fmt.Println("atttempting to serve requests with handler: " + request.ElementName)
 
 	if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[0])) && request.Dynamics == "" {
-		fullPath := request.BaseElementLocation + "/" + request.ElementName
-
-		router.GET(fullPath, request.Handle)
+		router.GET(request.BaseElementLocation, request.Handle)
 
 		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[0])) && request.Dynamics != "" {
-		fullPath := request.BaseElementLocation + "/" + request.ElementName
-
-		router.GET(fullPath, request.HandleVar)
+		router.GET(request.BaseElementLocation, request.HandleVar)
 
 		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[1])) {
-		fullPath := request.BaseElementLocation + request.Dynamics
-
-		router.POST(fullPath, request.HandlePost)
+		router.POST(request.BaseElementLocation, request.HandlePost)
 
 		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[2])) {
-		fullPath := request.BaseElementLocation + request.Dynamics
-
-		router.DELETE(fullPath, request.HandleDel)
+		router.DELETE(request.BaseElementLocation, request.HandleDel)
 
 		return router, nil
 	}
@@ -368,32 +392,28 @@ func (request RequestElement) AttemptToServeRequestsWithRouter(router *fasthttpr
 func (request RequestElement) AttemptToServeRequests() (*fasthttprouter.Router, error) {
 	fmt.Println("atttempting to serve requests")
 	if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[0])) && request.Dynamics == "" {
-		fullPath := request.BaseElementLocation + "/" + request.ElementName
 		router := fasthttprouter.New()
 
-		router.GET(fullPath, request.Handle)
+		router.GET(request.BaseElementLocation, request.Handle)
 
 		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[0])) && request.Dynamics != "" {
-		fullPath := request.BaseElementLocation + "/" + request.ElementName
 		router := fasthttprouter.New()
 
-		router.GET(fullPath, request.HandleVar)
+		router.GET(request.BaseElementLocation, request.HandleVar)
 
 		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[1])) {
-		fullPath := request.BaseElementLocation + request.Dynamics
-
 		router := fasthttprouter.New()
 
-		router.POST(fullPath, request.HandlePost)
+		router.POST(request.BaseElementLocation, request.HandlePost)
 
 		return router, nil
 	} else if strings.Contains(strings.ToLower(request.ElementRequestType), strings.ToLower(AvailableRequestTypes[2])) {
-		fullPath := request.BaseElementLocation + "/" + request.ElementName
+
 		router := fasthttprouter.New()
 
-		router.DELETE(fullPath, request.HandleDel)
+		router.DELETE(request.BaseElementLocation, request.HandleDel)
 
 		return router, nil
 	}
@@ -441,4 +461,53 @@ func findValue(database *mgo.Database, collection string, key string, value stri
 	}
 
 	return result, nil
+}
+
+// GetUserValues - attempts to fetch user values from specified request
+func (request RequestElement) GetUserValues(keys []string, ctx *fasthttp.RequestCtx) ([]string, error) {
+	x := 0
+
+	values := []string{}
+
+	if len(keys) == 0 {
+		return []string{}, errors.New("invalid keys")
+	}
+
+	params := strings.Split(string(ctx.RequestURI()), request.BaseElementLocation)[1] // All user parameters
+
+	for x != len(keys) {
+		key := "?" + keys[x] + "=" // Key to search for in user params
+
+		userVal := strings.Split(params, key)
+
+		if len(userVal) == 1 {
+			return values, nil
+		}
+
+		formattedVal := strings.Split(userVal[1], "?")[0]
+
+		values = append(values, formattedVal)
+		x++
+	}
+
+	return values, nil
+}
+
+// GetUserValue - attempts to fetch specified user value from request
+func (request RequestElement) GetUserValue(key string, ctx *fasthttp.RequestCtx) string {
+	initVal := string(ctx.PostArgs().Peek(key))
+
+	if initVal == "" {
+		initVal = string(ctx.QueryArgs().Peek(key))
+
+		if initVal == "" || strings.Contains("?", initVal) {
+			params := strings.Split(string(ctx.RequestURI()), request.BaseElementLocation)[1] // All user parameters
+			formattedKey := "?" + key + "="                                                   // Key to search for in user params
+
+			userVal := strings.Split(params, formattedKey)[1]
+
+			initVal = strings.Split(userVal, "?")[0]
+		}
+	}
+	return initVal
 }

@@ -49,7 +49,7 @@ func SetupAccountRoutes(db *mgo.Database) (*fasthttprouter.Router, error) {
 }
 
 func setGets(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	req, err := NewRequestServer(":username", "/api/accounts", "GET", db, db, "username")
+	req, err := NewRequestServer("?username", "/api/accounts/user", "GET", db, db, "?username")
 
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func setGets(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprout
 }
 
 func setProtectedGets(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	req, err := NewRequestServer(":username/:password", "/api/accounts", "GET", db, db, "username/:password")
+	req, err := NewRequestServer("?username?password", "/api/accounts/keys", "GET", db, db, "?username?password")
 
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func setProtectedGets(initRouter *fasthttprouter.Router, db *mgo.Database) (*fas
 }
 
 func setPosts(db *mgo.Database) (*fasthttprouter.Router, error) {
-	postReq, rErr := NewRequestServer("POST", "/api/accounts", "POST", nil, db, "/:username/:email/:pass")
+	postReq, rErr := NewRequestServer("?username?email?password", "/api/accounts/create", "POST", nil, db, "?username?email?password")
 
 	if rErr != nil {
 		return nil, rErr
@@ -97,7 +97,7 @@ func setPosts(db *mgo.Database) (*fasthttprouter.Router, error) {
 }
 
 func setDeletes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	delReq, rErr := NewRequestServer("DELETE", "/api/accounts", "DELETE", nil, db, "/:username/:pass")
+	delReq, rErr := NewRequestServer("?username?password", "/api/accounts/remove", "DELETE", nil, db, "?username?password")
 
 	if rErr != nil {
 		return nil, rErr
@@ -113,7 +113,7 @@ func setDeletes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttpr
 }
 
 func setDeposits(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	depReq, err := NewRequestServer("POST", "/api/deposit", "POST", nil, db, "/:username/:symbol")
+	depReq, err := NewRequestServer("?username?symbol", "/api/deposit", "POST", nil, db, "?username?symbol")
 
 	if err != nil {
 		return nil, err

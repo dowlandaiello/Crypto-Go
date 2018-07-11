@@ -16,19 +16,19 @@ func SetupOrderRoutes(router *fasthttprouter.Router, db *mgo.Database) (*fasthtt
 		return router, pErr
 	}
 
-	_, err := setOrderGets(router, db)
+	_, err := setGeneralRoutes(router, db)
+
+	if err != nil {
+		return router, err
+	}
+
+	_, err = setOrderGets(router, db)
 
 	if err != nil {
 		return router, err
 	}
 
 	_, err = setOrderDeletes(router, db)
-
-	if err != nil {
-		return router, err
-	}
-
-	_, err = setGeneralRoutes(router, db)
 
 	if err != nil {
 		return router, err
@@ -44,7 +44,7 @@ func SetupOrderRoutes(router *fasthttprouter.Router, db *mgo.Database) (*fasthtt
 }
 
 func setOrderGets(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	req, err := NewRequestServer(":pair/:OrderID", "/api/orders", "GET", db, db, "OrderID")
+	req, err := NewRequestServer("?pair?OrderID", "/api/orders/order", "GET", db, db, "?OrderID")
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func setOrderGets(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthtt
 }
 
 func setOrderPosts(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	postReq, rErr := NewRequestServer("POST", "/api/orders", "POST", nil, db, "/:pair/:ordertype/:orderamount/:fillprice/:username/:pass")
+	postReq, rErr := NewRequestServer("?pair?ordertype?orderamount?fillprice?username?password", "/api/orders", "POST", nil, db, "?pair?ordertype?orderamount?fillprice?username?password")
 
 	if rErr != nil {
 		return nil, rErr
@@ -75,7 +75,7 @@ func setOrderPosts(initRouter *fasthttprouter.Router, db *mgo.Database) (*fastht
 }
 
 func setOrderDeletes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	delReq, rErr := NewRequestServer("DELETE", "/api/orders", "DELETE", nil, db, "/:pair/:OrderID/:username/:pass")
+	delReq, rErr := NewRequestServer("?pair?OrderID?username?password", "/api/orders", "DELETE", nil, db, "?pair?OrderID?username?password")
 
 	if rErr != nil {
 		return nil, rErr
@@ -91,7 +91,7 @@ func setOrderDeletes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fast
 }
 
 func setOrderFills(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	postReq, err := NewRequestServer("POST", "/api/fill/orders", "POST", nil, db, "/:pair/:OrderID")
+	postReq, err := NewRequestServer("?pair?OrderID", "/api/orders/fill", "POST", nil, db, "?pair?OrderID")
 
 	if err != nil {
 		return nil, err
@@ -107,8 +107,8 @@ func setOrderFills(initRouter *fasthttprouter.Router, db *mgo.Database) (*fastht
 }
 
 func setGeneralRoutes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	getReq, _ := NewRequestServer("GET", "/api/orders/:pair", "GET", nil, db, "pair")
-	initRouter.GET("/api/orders/:pair", getReq.HandleGETCollection)
+	getReq, _ := NewRequestServer("?pair", "/api/orders?pair", "GET", nil, db, "?pair")
+	initRouter.GET("/api/orders", getReq.HandleGETCollection)
 
 	return initRouter, nil
 }
@@ -118,7 +118,7 @@ func addOrder(database *mgo.Database, order *orders.Order) error {
 	_, err := findOrder(database, order.OrderID, order.OrderPair)
 
 	if err != nil {
-		c := database.C(order.OrderPair.StartingSymbol + "-" + order.OrderPair.EndingSymbol)
+		c := (*database).C(order.OrderPair.StartingSymbol + "-" + order.OrderPair.EndingSymbol)
 
 		iErr := c.Insert(order)
 

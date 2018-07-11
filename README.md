@@ -10,13 +10,13 @@ http://108.6.212.149:8080/api/
 
 #### Request Formats
 
-In callback URLs, ${} denotes a parameter. For example, take the following request:
+In callback URLs, ?{}= denotes a parameter. For example, take the following request:
 
 ```BASH
-http://108.6.212.149:8080/api/accounts/${username}
+http://108.6.212.149:8080/api/accounts/user?username=
 ```
 
-This request calls for a username, of which would be specified by replacing '${username}' with a username. All requests will return a JSON-formatted object.
+This request calls for a username, of which would be specified by adding a username after '?username='. All requests will return a JSON-formatted object.
 
 ### Authentication
 
@@ -29,31 +29,31 @@ GET: http://108.6.212.149:8080/api/accounts
 Create an Account:
 
 ```BASH
-POST: http://108.6.212.149:8080/api/accounts/${username}/${email}/${password}
+POST: http://108.6.212.149:8080/api/accounts/create?username=?email=?password=
 ```
 
 Fetch Account Information:
 
 ```BASH
-GET: http://108.6.212.149:8080/api/accounts/${username}
+GET: http://108.6.212.149:8080/api/accounts/user?username=
 ```
 
 Fetch Account Wallet Private Keys:
 
 ```BASH
-GET: http://108.6.212.149:8080/api/accounts/${username}/${password}
+GET: http://108.6.212.149:8080/api/accounts/keys?username=?password=
 ```
 
 Delete an Account:
 
 ```BASH
-DELETE: http://108.6.212.149:8080/api/accounts/${username}/${password}
+DELETE: http://108.6.212.149:8080/api/accounts/remove?username=?password=
 ```
 
 Fetch an Account's Balance:
 
 ```BASH
-POST: http://108.6.212.149:8080/api/deposit/${username}/${symbol}
+POST: http://108.6.212.149:8080/api/deposit?username=?symbol=
 ```
 
 #### General Account Request Parameters
@@ -81,7 +81,7 @@ POST: http://108.6.212.149:8080/api/deposit/${username}/${symbol}
 Create an Order:
 
 ```BASH
-POST: http://180.6.212.149:8080/api/orders/${pair}/${type}/${amount}/${fillprice}/${username}/${password}
+POST: http://180.6.212.149:8080/api/orders?pair=?type=?amount=?fillprice=?username=?password=
 ```
 
 ```JSON
@@ -91,19 +91,19 @@ Note: before creating an order, make sure to fetch the balance of an account
 Cancel an Order:
 
 ```BASH
-DELETE: http://108.6.212.149:8080/api/accounts/${pair}/${id}/${username}/${password}
+DELETE: http://108.6.212.149:8080/api/orders?pair=?OrderID=?username=?password=
 ```
 
 Fetch Order Information:
 
 ```BASH
-GET: http://108.6.212.149:8080/api/orders/${pair}/${orderid}
+GET: http://108.6.212.149:8080/api/orders/order?pair=?OrderID=
 ```
 
 Fetch All Orders for Trading Pair:
 
 ```BASH
-GET: http://108.6.212.149:8080/api/orders/${pair}
+GET: http://108.6.212.149:8080/api/orders?pair=
 ```
 
 #### General Order Parameters
@@ -133,7 +133,7 @@ GET: http://108.6.212.149:8080/api/orders/${pair}
 ```
 
 ```JSON
-7. orderid: id of order, found under JSON tag "orderid"
+7. OrderID: id of order, found under JSON tag "orderid"
 ```
 
 ## Definitions

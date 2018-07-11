@@ -17,7 +17,7 @@ func SetupMarketRoutes(router *fasthttprouter.Router, db *mgo.Database) (*fastht
 }
 
 func setPriceGets(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	req, err := NewRequestServer(":pair", "/api/markets/price", "GET", db, db, "pair")
+	req, err := NewRequestServer("?pair", "/api/markets/price", "GET", db, db, "?pair")
 	if err != nil {
 		return nil, err
 	}
