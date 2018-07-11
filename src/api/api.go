@@ -210,23 +210,7 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 	}
 
 	if len(values) < 3 {
-		x = 0
-
-		nVals := []string{}
-
-		params := strings.Split(string(ctx.RequestURI()), request.BaseElementLocation)[1] // All user parameters
-
-		for x != len(keys) {
-			key := "?" + keys[x] + "=" // Key to search for in user params
-
-			userVal := strings.Split(params, key)[1]
-			formattedVal := strings.Split(userVal, "?")[0]
-
-			nVals = append(nVals, formattedVal)
-			x++
-		}
-
-		values = nVals
+		values, _ = request.GetUserValues(keys, ctx)
 	}
 
 	if common.StringInSlice("username", keys) && !common.StringInSlice("pair", keys) && !common.StringInSlice("symbol", keys) {
@@ -456,4 +440,29 @@ func findValue(database *mgo.Database, collection string, key string, value stri
 	}
 
 	return result, nil
+}
+
+// GetUserValues - attempts to fetch user values from specified request
+func (request RequestElement) GetUserValues(keys []string, ctx *fasthttp.RequestCtx) ([]string, error) {
+	x := 0
+
+	values := []string{}
+
+	if len(keys) == 0 {
+		return []string{}, errors.New("invalid keys")
+	}
+
+	params := strings.Split(string(ctx.RequestURI()), request.BaseElementLocation)[1] // All user parameters
+
+	for x != len(keys) {
+		key := "?" + keys[x] + "=" // Key to search for in user params
+
+		userVal := strings.Split(params, key)[1]
+		formattedVal := strings.Split(userVal, "?")[0]
+
+		values = append(values, formattedVal)
+		x++
+	}
+
+	return values, nil
 }
