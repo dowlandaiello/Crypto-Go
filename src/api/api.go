@@ -134,7 +134,7 @@ func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
 func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 	key := strings.Split(common.TrimLeftChar(request.ElementName), "?")[0]
 
-	value := string(ctx.FormValue(key))
+	value := request.GetUserValue(key, ctx)
 
 	collection := strings.Split(request.BaseElementLocation, "/")[2]
 
@@ -142,13 +142,15 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 		collection = value
 
 		key = strings.Split(common.TrimLeftChar(request.ElementName), "?")[1]
-		value = string(ctx.FormValue(key))
+		value = request.GetUserValue(key, ctx)
 	}
 
 	if strings.Contains(request.Dynamics, "password") && !strings.Contains(request.BaseElementLocation, "orders") {
 		passKey := strings.Split(common.TrimLeftChar(request.ElementName), "?")[1]
 
-		accVal, err := findAccount(request.ElementDb, string(ctx.FormValue(strings.ToLower(key))))
+		passVal := request.GetUserValue(strings.ToLower(key), ctx)
+
+		accVal, err := findAccount(request.ElementDb, passVal)
 
 		if err != nil {
 			fmt.Fprintf(ctx, err.Error())
@@ -476,4 +478,20 @@ func (request RequestElement) GetUserValues(keys []string, ctx *fasthttp.Request
 	}
 
 	return values, nil
+}
+
+// GetUserValue - attempts to fetch specified user value from request
+func (request RequestElement) GetUserValue(key string, ctx *fasthttp.RequestCtx) string {
+	initVal := string(ctx.PostArgs().Peek(key))
+
+	if initVal == "" {
+		params := strings.Split(string(ctx.RequestURI()), request.BaseElementLocation)[1] // All user parameters
+		formattedKey := "?" + key + "="                                                   // Key to search for in user params
+
+		userVal := strings.Split(params, formattedKey)[1]
+		formattedVal := strings.Split(userVal, "?")[0]
+
+		return formattedVal
+	}
+	return initVal
 }
