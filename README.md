@@ -10,13 +10,13 @@ http://108.6.212.149:8080/api/
 
 #### Request Formats
 
-In callback URLs, ${} denotes a parameter. For example, take the following request:
+In callback URLs, ?{}= denotes a parameter. For example, take the following request:
 
 ```BASH
-http://108.6.212.149:8080/api/accounts/${username}
+http://108.6.212.149:8080/api/accounts/user?username=
 ```
 
-This request calls for a username, of which would be specified by replacing '${username}' with a username. All requests will return a JSON-formatted object.
+This request calls for a username, of which would be specified by adding a username after '?username='. All requests will return a JSON-formatted object.
 
 ### Authentication
 
@@ -29,7 +29,7 @@ GET: http://108.6.212.149:8080/api/accounts
 Create an Account:
 
 ```BASH
-POST: http://108.6.212.149:8080/api/accounts/${username}/${email}/${password}
+POST: http://108.6.212.149:8080/api/accounts/create?username=?email=?password=
 ```
 
 Fetch Account Information:
