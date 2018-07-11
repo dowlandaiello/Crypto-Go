@@ -222,7 +222,7 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 		x++
 	}
 
-	if len(values) < 3 {
+	if len(values) < 2 {
 		values, _ = request.GetUserValues(keys, ctx)
 	}
 
@@ -470,8 +470,13 @@ func (request RequestElement) GetUserValues(keys []string, ctx *fasthttp.Request
 	for x != len(keys) {
 		key := "?" + keys[x] + "=" // Key to search for in user params
 
-		userVal := strings.Split(params, key)[1]
-		formattedVal := strings.Split(userVal, "?")[0]
+		userVal := strings.Split(params, key)
+
+		if len(userVal) == 1 {
+			return values, nil
+		}
+
+		formattedVal := strings.Split(userVal[1], "?")[0]
 
 		values = append(values, formattedVal)
 		x++
@@ -485,13 +490,20 @@ func (request RequestElement) GetUserValue(key string, ctx *fasthttp.RequestCtx)
 	initVal := string(ctx.PostArgs().Peek(key))
 
 	if initVal == "" {
-		params := strings.Split(string(ctx.RequestURI()), request.BaseElementLocation)[1] // All user parameters
-		formattedKey := "?" + key + "="                                                   // Key to search for in user params
+		initVal = string(ctx.QueryArgs().Peek(key))
 
-		userVal := strings.Split(params, formattedKey)[1]
-		formattedVal := strings.Split(userVal, "?")[0]
+		if initVal == "" || strings.Contains("?", initVal) {
+			params := strings.Split(string(ctx.RequestURI()), request.BaseElementLocation)[1] // All user parameters
+			formattedKey := "?" + key + "="                                                   // Key to search for in user params
 
-		return formattedVal
+			if len(formattedKey) == 0 || len(params) == 0 {
+				return ""
+			}
+
+			userVal := strings.Split(params, formattedKey)[1]
+
+			initVal = strings.Split(userVal, "?")[0]
+		}
 	}
 	return initVal
 }

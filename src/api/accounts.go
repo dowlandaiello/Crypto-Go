@@ -49,7 +49,7 @@ func SetupAccountRoutes(db *mgo.Database) (*fasthttprouter.Router, error) {
 }
 
 func setGets(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	req, err := NewRequestServer("?username", "/api/accounts", "GET", db, db, "?username")
+	req, err := NewRequestServer("?username", "/api/accounts/user", "GET", db, db, "?username")
 
 	if err != nil {
 		return nil, err
@@ -129,8 +129,8 @@ func setDeposits(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttp
 }
 
 func setGeneralAccountRoutes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	//getReq, _ := NewRequestServer("GET", "/api/accounts", "GET", nil, db, "")
-	//initRouter.GET("/api/accounts", getReq.HandleGETCollection)
+	getReq, _ := NewRequestServer("GET", "/api/accounts", "GET", nil, db, "")
+	initRouter.GET("/api/accounts", getReq.HandleGETCollection)
 
 	return initRouter, nil
 }
