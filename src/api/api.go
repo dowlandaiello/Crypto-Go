@@ -148,15 +148,15 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 	if strings.Contains(request.Dynamics, "password") && !strings.Contains(request.BaseElementLocation, "orders") {
 		passKey := strings.Split(common.TrimLeftChar(request.ElementName), "?")[1]
 
-		passVal := request.GetUserValue(strings.ToLower(key), ctx)
+		passVal := request.GetUserValue(strings.ToLower(passKey), ctx)
 
-		accVal, err := findAccount(request.ElementDb, passVal)
+		accVal, err := findAccount(request.ElementDb, request.GetUserValue("username", ctx))
 
 		if err != nil {
 			fmt.Fprintf(ctx, err.Error())
 		} else {
-			if common.ComparePasswords(accVal.PassHash, ctx.FormValue(passKey)) {
-				val, err := accounts.DecryptPrivateKeys(accVal.WalletRawHashedKeys, string(ctx.FormValue(passKey)))
+			if common.ComparePasswords(accVal.PassHash, []byte(passVal)) {
+				val, err := accounts.DecryptPrivateKeys(accVal.WalletRawHashedKeys, string(passVal))
 
 				if err != nil {
 					fmt.Fprintf(ctx, err.Error())
