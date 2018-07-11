@@ -74,8 +74,19 @@ func (request RequestElement) HandleDel(ctx *fasthttp.RequestCtx) {
 	x := 0
 
 	for x != len(keys) {
-		values = append(values, string(ctx.FormValue(keys[x])))
+		peekVal := string(ctx.PostArgs().Peek(keys[x]))
+
+		if peekVal == "" {
+			break
+		}
+
+		values = append(values, peekVal)
+
 		x++
+	}
+
+	if len(values) < 3 {
+		values, _ = request.GetUserValues(keys, ctx)
 	}
 
 	if common.StringInSlice("username", keys) && !common.StringInSlice("pair", keys) {

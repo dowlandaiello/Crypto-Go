@@ -97,7 +97,7 @@ func setPosts(db *mgo.Database) (*fasthttprouter.Router, error) {
 }
 
 func setDeletes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	delReq, rErr := NewRequestServer("?username?pass", "/api/accounts/remove", "DELETE", nil, db, "?username?pass")
+	delReq, rErr := NewRequestServer("?username?password", "/api/accounts/remove", "DELETE", nil, db, "?username?password")
 
 	if rErr != nil {
 		return nil, rErr

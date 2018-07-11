@@ -33,16 +33,16 @@ type Account struct {
 }
 
 // NewAccount - create, return new account
-func NewAccount(username string, email string, pass string) Account {
+func NewAccount(username string, email string, password string) Account {
 	pub, priv, _ := wallets.NewWallets()
-	encrypted, err := encryptPrivateKeys(priv, pass)
+	encrypted, err := encryptPrivateKeys(priv, password)
 
 	if err != nil {
 		return Account{}
 	}
 
-	pass = common.HashAndSalt([]byte(pass))
-	rAccount := Account{Balance: 0, Username: username, Email: email, PassHash: pass, WalletAddresses: pub, WalletBalances: []float64{float64(0), float64(0), float64(0)}, WalletRawHashedKeys: encrypted, WalletHashedKeys: common.HashSlice(encrypted)}
+	password = common.HashAndSalt([]byte(password))
+	rAccount := Account{Balance: 0, Username: username, Email: email, PassHash: password, WalletAddresses: pub, WalletBalances: []float64{float64(0), float64(0), float64(0)}, WalletRawHashedKeys: encrypted, WalletHashedKeys: common.HashSlice(encrypted)}
 	return rAccount
 }
 

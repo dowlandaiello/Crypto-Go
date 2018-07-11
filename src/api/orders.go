@@ -59,7 +59,7 @@ func setOrderGets(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthtt
 }
 
 func setOrderPosts(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	postReq, rErr := NewRequestServer("POST", "/api/orders", "POST", nil, db, "/:pair/:ordertype/:orderamount/:fillprice/:username/:pass")
+	postReq, rErr := NewRequestServer("POST", "/api/orders", "POST", nil, db, "/:pair/:ordertype/:orderamount/:fillprice/:username/:password")
 
 	if rErr != nil {
 		return nil, rErr
@@ -75,7 +75,7 @@ func setOrderPosts(initRouter *fasthttprouter.Router, db *mgo.Database) (*fastht
 }
 
 func setOrderDeletes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	delReq, rErr := NewRequestServer("DELETE", "/api/orders", "DELETE", nil, db, "/:pair/:OrderID/:username/:pass")
+	delReq, rErr := NewRequestServer("DELETE", "/api/orders", "DELETE", nil, db, "/:pair/:OrderID/:username/:password")
 
 	if rErr != nil {
 		return nil, rErr
