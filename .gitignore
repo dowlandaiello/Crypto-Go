@@ -1,1 +1,7 @@
 /db
+db/WiredTiger.wt
+db/WiredTiger.turtle
+db/_mdb_catalog.wt
+db/mongod.lock
+*.wt
+*.turtle
