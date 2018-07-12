@@ -181,13 +181,18 @@ func (request RequestElement) HandleVar(ctx *fasthttp.RequestCtx) {
 	} else if strings.Contains(request.Dynamics, "pair") {
 		strVal := strings.ToUpper(request.GetUserValue(common.TrimLeftChar(request.Dynamics), ctx))
 		split := strings.Split(strVal, "-")
+		if !strings.Contains(request.BaseElementLocation, "volume") {
+			currentPrice, err := market.CheckPrice(pairs.NewPair(split[0], split[1]))
 
-		currentPrice, err := market.CheckPrice(pairs.NewPair(split[0], split[1]))
-
-		if err != nil {
-			fmt.Fprintf(ctx, err.Error())
+			if err != nil {
+				fmt.Fprintf(ctx, err.Error())
+			} else {
+				fmt.Fprintf(ctx, common.FloatToString(currentPrice))
+			}
 		} else {
-			fmt.Fprintf(ctx, common.FloatToString(currentPrice))
+			currentVolume := market.CheckVolume(pairs.NewPair(split[0], split[1]))
+
+			fmt.Fprintf(ctx, common.FloatToString(currentVolume))
 		}
 	} else {
 		val, err := findValue(request.ElementDb, collection, strings.ToLower(key), value)
@@ -397,6 +402,8 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 				fmt.Fprintf(ctx, err.Error())
 			} else {
 				err = orders.FillOrder(order)
+
+				order.OrderPair.Volume += order.Amount
 
 				if err != nil {
 					fmt.Fprintf(ctx, err.Error())

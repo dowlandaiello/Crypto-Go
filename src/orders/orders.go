@@ -23,9 +23,9 @@ type Order struct {
 
 	Amount float64 `json:"amount"`
 
-	OrderType string     `json:"ordertype"` // OrderType - BUY, SELL
-	OrderFee  float64    `json:"orderfee"`
-	OrderPair pairs.Pair `json:"tradingpair"` // OrderPair - startingpair (BTC, ETH, LTC), endingpair (BTC, ETH, LTC)
+	OrderType string      `json:"ordertype"` // OrderType - BUY, SELL
+	OrderFee  float64     `json:"orderfee"`
+	OrderPair *pairs.Pair `json:"tradingpair"` // OrderPair - startingpair (BTC, ETH, LTC), endingpair (BTC, ETH, LTC)
 
 	Issuer *accounts.Account `json:"issuer"` // Account creating order
 
@@ -41,7 +41,7 @@ func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pai
 	fmt.Println("current " + tradingpair.ToString() + " price: " + common.FloatToString(currentPrice))
 
 	if amount*fillprice <= account.WalletBalances[common.IndexInSlice(tradingpair.EndingSymbol, []string{"BTC", "LTC", "ETH"})] && tradingpair.StartingSymbol != tradingpair.EndingSymbol { // Checks that amount is not more than account's balance
-		rOrder := Order{Filled: false, FillTime: time.Now().UTC(), FillPrice: fillprice, IssuanceTime: time.Now().UTC(), Amount: (1.0 - common.FeeRate) * amount, OrderType: ordertype, OrderPair: tradingpair, Issuer: account, OrderID: "", OrderFee: common.FeeRate * amount}
+		rOrder := Order{Filled: false, FillTime: time.Now().UTC(), FillPrice: fillprice, IssuanceTime: time.Now().UTC(), Amount: (1.0 - common.FeeRate) * amount, OrderType: ordertype, OrderPair: &tradingpair, Issuer: account, OrderID: "", OrderFee: common.FeeRate * amount}
 
 		hash, err := common.Hash(rOrder) // Creates order hash
 
@@ -62,7 +62,7 @@ func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pai
 
 // FillOrder - fills order
 func FillOrder(order *Order) error {
-	currentPrice, err := market.CheckPrice(order.OrderPair)
+	currentPrice, err := market.CheckPrice(*order.OrderPair)
 
 	fmt.Println("\ncurrent " + order.OrderPair.ToString() + " price: " + common.FloatToString(currentPrice))
 

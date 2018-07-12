@@ -10,6 +10,8 @@ import (
 type Pair struct {
 	StartingSymbol string `json:"startingsymbol"`
 	EndingSymbol   string `json:"endingsymbol"`
+
+	Volume float64 `json:"market volume"`
 }
 
 // NewPair - returns pair, checks if valid
