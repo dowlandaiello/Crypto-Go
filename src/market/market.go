@@ -11,7 +11,17 @@ import (
 	"github.com/mitsukomegumi/Crypto-Go/src/pairs"
 )
 
-// CheckPrice - checks price of asset
+// CheckVolume - check volume (float) of specified tradingpair
+func CheckVolume(tradingpair pairs.Pair) float64 {
+	return tradingpair.Volume
+}
+
+// ClearVolume - clear volume of specified trading pair
+func ClearVolume(tradingpair pairs.Pair) {
+	tradingpair.Volume = 0
+}
+
+// CheckPrice - check price of asset pair
 func CheckPrice(tradingpair pairs.Pair) (float64, error) {
 	response, err := http.Get("https://min-api.cryptocompare.com/data/price?fsym=" + tradingpair.StartingSymbol + "&tsyms=" + tradingpair.EndingSymbol)
 
