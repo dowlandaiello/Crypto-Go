@@ -1,5 +1,7 @@
 # Api
 
+[![Build Status](https://travis-ci.com/MitsukoMegumi/Crypto-Go.svg?branch=master)](https://travis-ci.com/MitsukoMegumi/Crypto-Go) [![Go Report Card](https://goreportcard.com/badge/github.com/mitsukomegumi/crypto-go)](https://goreportcard.com/report/github.com/mitsukomegumi/crypto-go)
+
 ## Specifications
 
 ### Global
