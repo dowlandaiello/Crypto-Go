@@ -231,14 +231,34 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 	}
 
 	if common.StringInSlice("username", keys) && !common.StringInSlice("pair", keys) && !common.StringInSlice("symbol", keys) {
-		acc := accounts.NewAccount(values[0], values[1], values[2])
-
-		err := addAccount(request.ElementDb, &acc)
+		fAcc, err := findAccount(request.ElementDb, values[0])
 
 		if err != nil {
-			fmt.Fprintf(ctx, err.Error())
+			acc := accounts.NewAccount(values[0], values[1], values[2])
+
+			err = addAccount(request.ElementDb, &acc)
+
+			if err != nil {
+				fmt.Fprintf(ctx, err.Error())
+			} else {
+				json, err := json.MarshalIndent(acc, "", "  ")
+
+				if err != nil {
+					fmt.Fprintf(ctx, err.Error())
+				} else {
+					fmt.Fprintf(ctx, string(json[:]))
+				}
+			}
 		} else {
-			json, err := json.MarshalIndent(acc, "", "  ")
+			update := fAcc
+
+			update.Username = values[0]
+			update.Email = values[1]
+			update.PassHash = common.HashAndSalt([]byte(values[2]))
+
+			err = updateAccount(request.ElementDb, fAcc, &update)
+
+			json, err := json.MarshalIndent(update, "", "  ")
 
 			if err != nil {
 				fmt.Fprintf(ctx, err.Error())
