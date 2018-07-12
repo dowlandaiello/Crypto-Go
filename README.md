@@ -38,6 +38,12 @@ Fetch Account Information:
 GET: http://108.6.212.149:8080/api/accounts/user?username=
 ```
 
+Update Account Information:
+
+```BASH
+POST: http://108.6.212.149:8080/api/accounts/update?username=?email=?newpassword=?oldpassword=
+```
+
 Fetch Account Wallet Private Keys:
 
 ```BASH
@@ -74,6 +80,14 @@ POST: http://108.6.212.149:8080/api/deposit?username=?symbol=
 4. symbol: trading symbol ("BTC", "LTC", "ETH")
 ```
 
+```JSON
+5. newpassword: desired newpassword (used only in update request)
+```
+
+```JSON
+5. oldpassword: raw account old password (used only in update request)
+```
+
 ### Orders
 
 ### Route Specifications
@@ -82,10 +96,8 @@ Create an Order:
 
 ```BASH
 POST: http://180.6.212.149:8080/api/orders?pair=?type=?amount=?fillprice=?username=?password=
-```
 
-```JSON
-Note: before creating an order, make sure to fetch the balance of an account
+Note: before creating an order, make sure to fetch the balance of the issuing account
 ```
 
 Cancel an Order:
@@ -98,6 +110,14 @@ Fetch Order Information:
 
 ```BASH
 GET: http://108.6.212.149:8080/api/orders/order?pair=?OrderID=
+```
+
+Update Order Information:
+
+```BASH
+POST: http://108.6.212.149:8080/api/orders/update?pair=?OrderID=?username=?password=?updatedfill=?updatedamount=
+
+Note: before updating an order, make sure to fetch the balance of the issuing account
 ```
 
 Fetch All Orders for Trading Pair:
@@ -134,6 +154,14 @@ GET: http://108.6.212.149:8080/api/orders?pair=
 
 ```JSON
 7. OrderID: id of order, found under JSON tag "orderid"
+```
+
+```JSON
+8. updatefill: desired new fill price (used only in update request)
+```
+
+```JSON
+9. updateamount: desired new amount of coins to trade (used only in update request)
 ```
 
 ## Definitions
