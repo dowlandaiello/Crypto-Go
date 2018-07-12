@@ -21,6 +21,12 @@ func SetupAccountRoutes(db *mgo.Database) (*fasthttprouter.Router, error) {
 		return router, err
 	}
 
+	_, err = setUpdates(router, db)
+
+	if err != nil {
+		return router, err
+	}
+
 	_, prErr := setProtectedGets(router, db)
 
 	if prErr != nil {
@@ -94,6 +100,18 @@ func setPosts(db *mgo.Database) (*fasthttprouter.Router, error) {
 	}
 
 	return router, nil
+}
+
+func setUpdates(initrouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
+	updateReq, err := NewRequestServer("?username?email?newpassword?oldpassword", "/api/accounts/update", "POST", nil, db, "?username?email?newpassword?oldpassword")
+
+	if err != nil {
+		return initrouter, err
+	}
+
+	_, err = updateReq.AttemptToServeRequestsWithRouter(initrouter)
+
+	return initrouter, nil
 }
 
 func setDeletes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {

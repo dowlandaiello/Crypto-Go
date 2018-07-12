@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mitsukomegumi/Crypto-Go/src/database"
 	"github.com/mitsukomegumi/Crypto-Go/src/market"
 
 	"github.com/mitsukomegumi/Crypto-Go/src/pairs"
@@ -231,53 +232,134 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 	}
 
 	if common.StringInSlice("username", keys) && !common.StringInSlice("pair", keys) && !common.StringInSlice("symbol", keys) {
-		acc := accounts.NewAccount(values[0], values[1], values[2])
-
-		err := addAccount(request.ElementDb, &acc)
+		fAcc, err := findAccount(request.ElementDb, values[0])
 
 		if err != nil {
-			fmt.Fprintf(ctx, err.Error())
-		} else {
-			json, err := json.MarshalIndent(acc, "", "  ")
+			fmt.Println(values)
+			acc := accounts.NewAccount(values[0], values[1], values[2])
+
+			err = addAccount(request.ElementDb, &acc)
 
 			if err != nil {
 				fmt.Fprintf(ctx, err.Error())
 			} else {
-				fmt.Fprintf(ctx, string(json[:]))
+				json, err := json.MarshalIndent(acc, "", "  ")
+
+				if err != nil {
+					fmt.Fprintf(ctx, err.Error())
+				} else {
+					fmt.Fprintf(ctx, string(json[:]))
+				}
+			}
+		} else {
+			if common.ComparePasswords(fAcc.PassHash, []byte(values[3])) {
+				update := fAcc
+
+				update.Username = values[0]
+				update.Email = values[1]
+				update.PassHash = common.HashAndSalt([]byte(values[2]))
+
+				err = updateAccount(request.ElementDb, fAcc, &update)
+
+				json, err := json.MarshalIndent(update, "", "  ")
+
+				if err != nil {
+					fmt.Fprintf(ctx, err.Error())
+				} else {
+					fmt.Fprintf(ctx, string(json[:]))
+				}
+			} else {
+				fmt.Fprint(ctx, errors.New("invalid password").Error())
 			}
 		}
 	} else if common.StringInSlice("pair", keys) && !strings.Contains(request.BaseElementLocation, "fill") {
-		acc, err := findAccount(request.ElementDb, values[4])
+		if !strings.Contains(request.BaseElementLocation, "update") {
+			acc, err := findAccount(request.ElementDb, values[4])
 
-		if err == nil {
-			if common.ComparePasswords(acc.PassHash, []byte(values[5])) {
-				split := strings.Split(values[0], "-")
-				pair := pairs.NewPair(split[0], split[1])
-				amount, _ := strconv.ParseFloat(values[2], 64)
-				fillprice, _ := strconv.ParseFloat(values[3], 64)
-				order, err := orders.NewOrder(&acc, values[1], pair, amount, fillprice)
-
-				if err != nil {
-					fmt.Fprintln(ctx, err.Error())
-				} else {
-					err = addOrder(request.ElementDb, &order)
-
-					fAcc, _ := findAccount(request.ElementDb, values[4])
-
-					updateAccount(request.ElementDb, fAcc, &acc)
+			if err == nil {
+				if common.ComparePasswords(acc.PassHash, []byte(values[5])) {
+					split := strings.Split(values[0], "-")
+					pair := pairs.NewPair(split[0], split[1])
+					amount, _ := strconv.ParseFloat(values[2], 64)
+					fillprice, _ := strconv.ParseFloat(values[3], 64)
+					order, err := orders.NewOrder(&acc, values[1], pair, amount, fillprice)
 
 					if err != nil {
-						fmt.Fprintf(ctx, err.Error())
+						fmt.Fprintln(ctx, err.Error())
 					} else {
-						json, err := json.MarshalIndent(order, "", "  ")
+						err = addOrder(request.ElementDb, &order)
+
+						fAcc, _ := findAccount(request.ElementDb, values[4])
+
+						updateAccount(request.ElementDb, fAcc, &acc)
 
 						if err != nil {
 							fmt.Fprintf(ctx, err.Error())
 						} else {
-							fmt.Fprintf(ctx, string(json[:]))
+							json, err := json.MarshalIndent(order, "", "  ")
+
+							if err != nil {
+								fmt.Fprintf(ctx, err.Error())
+							} else {
+								fmt.Fprintf(ctx, string(json[:]))
+							}
 						}
 					}
 				}
+			}
+		} else {
+			fAcc, err := findAccount(request.ElementDb, values[2])
+
+			if err == nil {
+				if common.ComparePasswords(fAcc.PassHash, []byte(values[3])) {
+					split := strings.Split(values[0], "-")
+
+					pair := pairs.NewPair(split[0], split[1])
+					fOrder, err := findOrder(request.ElementDb, values[1], pair)
+
+					if err != nil {
+						fmt.Fprintf(ctx, errors.New("invalid orderid").Error())
+					} else {
+						floatValueAmount, err := strconv.ParseFloat(values[5], 64)
+
+						if err != nil {
+							fmt.Fprintf(ctx, err.Error())
+						} else {
+							floatFill, err := strconv.ParseFloat(values[4], 64)
+
+							if err != nil {
+								fmt.Fprint(ctx, err.Error())
+							}
+
+							update, err := orders.NewOrder(&fAcc, fOrder.OrderType, pair, floatValueAmount, floatFill)
+
+							update.OrderID = fOrder.OrderID
+
+							if err != nil {
+								fmt.Fprintf(ctx, err.Error())
+							}
+
+							err = database.UpdateOrder(request.ElementDb, *fOrder, update)
+
+							if err != nil {
+								fmt.Fprintf(ctx, err.Error())
+							} else {
+								json, err := json.MarshalIndent(update, "", "  ")
+
+								if err != nil {
+									fmt.Fprintf(ctx, err.Error())
+								} else {
+									fmt.Fprintf(ctx, string(json[:]))
+								}
+							}
+						}
+					}
+
+				} else {
+					fmt.Fprint(ctx, "incorrect password")
+				}
+			} else {
+				fmt.Fprintf(ctx, "invalid account "+"'"+values[2]+"'")
 			}
 		}
 	} else if common.StringInSlice("symbol", keys) {

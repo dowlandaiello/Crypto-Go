@@ -22,6 +22,12 @@ func SetupOrderRoutes(router *fasthttprouter.Router, db *mgo.Database) (*fasthtt
 		return router, err
 	}
 
+	_, err = setOrderUpdates(router, db)
+
+	if err != nil {
+		return router, err
+	}
+
 	_, err = setOrderGets(router, db)
 
 	if err != nil {
@@ -68,10 +74,26 @@ func setOrderPosts(initRouter *fasthttprouter.Router, db *mgo.Database) (*fastht
 	router, pErr := postReq.AttemptToServeRequestsWithRouter(initRouter)
 
 	if pErr != nil {
-		panic(rErr)
+		return nil, rErr
 	}
 
 	return router, nil
+}
+
+func setOrderUpdates(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
+	updateReq, err := NewRequestServer("?pair?OrderID?username?password?updatedfill?updatedamount", "/api/orders/update", "POST", nil, db, "?pair?OrderID?username?password?updatedfill?updatedamount")
+
+	if err != nil {
+		return initRouter, err
+	}
+
+	_, err = updateReq.AttemptToServeRequestsWithRouter(initRouter)
+
+	if err != nil {
+		return initRouter, err
+	}
+
+	return initRouter, nil
 }
 
 func setOrderDeletes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
