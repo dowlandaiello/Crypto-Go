@@ -589,7 +589,7 @@ func (request RequestElement) GetUserValue(key string, ctx *fasthttp.RequestCtx)
 	if initVal == "" {
 		initVal = string(ctx.QueryArgs().Peek(key))
 
-		if initVal == "" || strings.Contains("?", initVal) {
+		if initVal == "" || strings.Contains(initVal, "?") {
 			params := strings.Split(string(ctx.RequestURI()), request.BaseElementLocation)[1] // All user parameters
 			formattedKey := "?" + key + "="                                                   // Key to search for in user params
 
