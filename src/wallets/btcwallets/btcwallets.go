@@ -14,5 +14,9 @@ func NewWallet() (string, []byte, error) {
 
 	pub, err := common.GetAddress("bitcoin", priv)
 
+	if err != nil {
+		return "", []byte{}, err
+	}
+
 	return pub.EncodeAddress(), priv.SerializePubKey(), nil
 }
