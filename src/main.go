@@ -17,7 +17,7 @@ func main() {
 
 /*
 	TODO:
-		- Handle UPDATE requests
+		- [1/2] Handle UPDATE requests
 		- Add methods to get volume via API
 		- On deployment, check for non-testnet
 		- Add API methods to get current price of certain assets
