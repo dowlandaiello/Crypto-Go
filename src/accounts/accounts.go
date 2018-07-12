@@ -105,77 +105,91 @@ func findAccount(database *mgo.Database, username string) (Account, error) {
 func (acc *Account) checkBalance(symbol string) (float64, error) {
 	if common.StringInSlice(symbol, common.AvailableSymbols) {
 		if strings.ToLower(symbol) == "btc" {
-			response, err := http.Get("https://blockchain.info/balance?active=" + acc.WalletAddresses[0])
-			if err != nil {
-				return float64(0), err
-			}
-			defer response.Body.Close()
-			contents, err := ioutil.ReadAll(response.Body)
-			if err != nil {
-				return float64(0), err
-			}
-
-			formatted := common.BlockchainRequest{}
-			err = json.Unmarshal(contents, &formatted)
-
-			if err != nil {
-				return float64(0), err
-			}
-
-			return formatted.Balance / 100000000, nil
+			return acc.handleBtc()
 		} else if strings.ToLower(symbol) == "ltc" {
-			response, err := http.Get("http://api.blockcypher.com/v1/ltc/main/addrs/" + acc.WalletAddresses[1] + "/balance")
-			if err != nil {
-				return float64(0), err
-			}
-			defer response.Body.Close()
-			contents, err := ioutil.ReadAll(response.Body)
-			if err != nil {
-				return float64(0), err
-			}
-
-			formatted := common.EtherscanRequest{}
-			err = json.Unmarshal(contents, &formatted)
-
-			if err != nil {
-				return float64(0), err
-			}
-
-			val, err := strconv.ParseFloat(formatted.Result, 64)
-
-			if err != nil {
-				return float64(0), err
-			}
-
-			return val / 100000000, nil
+			return acc.handleLtc()
 		} else if strings.ToLower(symbol) == "eth" {
-			response, err := http.Get("https://api.etherscan.io/api?module=account&action=balance&address=" + acc.WalletAddresses[2] + "&tag=latest&apikey=" + common.EtherscanToken)
-			if err != nil {
-				return float64(0), err
-			}
-			defer response.Body.Close()
-			contents, err := ioutil.ReadAll(response.Body)
-			if err != nil {
-				return float64(0), err
-			}
-
-			formatted := common.EtherscanRequest{}
-			err = json.Unmarshal(contents, &formatted)
-
-			if err != nil {
-				return float64(0), err
-			}
-
-			val, err := strconv.ParseFloat(formatted.Result, 64)
-
-			if err != nil {
-				return float64(0), err
-			}
-
-			return val / 1000000000000000000, nil
+			return acc.handleEth()
 		}
 	}
 	return 0, errors.New("invalid symbol")
+}
+
+func (acc *Account) handleBtc() (float64, error) {
+	response, err := http.Get("https://blockchain.info/balance?active=" + acc.WalletAddresses[0])
+
+	if err != nil {
+		return float64(0), err
+	}
+
+	defer response.Body.Close()
+	contents, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return float64(0), err
+	}
+
+	formatted := common.BlockchainRequest{}
+
+	err = json.Unmarshal(contents, &formatted)
+	if err != nil {
+		return float64(0), err
+	}
+
+	return formatted.Balance / 100000000, nil
+}
+
+func (acc *Account) handleEth() (float64, error) {
+	response, err := http.Get("https://api.etherscan.io/api?module=account&action=balance&address=" + acc.WalletAddresses[2] + "&tag=latest&apikey=" + common.EtherscanToken)
+	if err != nil {
+		return float64(0), err
+	}
+	defer response.Body.Close()
+	contents, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return float64(0), err
+	}
+
+	formatted := common.EtherscanRequest{}
+	err = json.Unmarshal(contents, &formatted)
+
+	if err != nil {
+		return float64(0), err
+	}
+
+	val, err := strconv.ParseFloat(formatted.Result, 64)
+
+	if err != nil {
+		return float64(0), err
+	}
+
+	return val / 1000000000000000000, nil
+}
+
+func (acc *Account) handleLtc() (float64, error) {
+	response, err := http.Get("http://api.blockcypher.com/v1/ltc/main/addrs/" + acc.WalletAddresses[1] + "/balance")
+	if err != nil {
+		return float64(0), err
+	}
+	defer response.Body.Close()
+	contents, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return float64(0), err
+	}
+
+	formatted := common.EtherscanRequest{}
+	err = json.Unmarshal(contents, &formatted)
+
+	if err != nil {
+		return float64(0), err
+	}
+
+	val, err := strconv.ParseFloat(formatted.Result, 64)
+
+	if err != nil {
+		return float64(0), err
+	}
+
+	return val / 100000000, nil
 }
 
 // DecryptPrivateKeys - decrypts private keys
