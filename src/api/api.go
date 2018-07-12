@@ -333,6 +333,8 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 
 							update, err := orders.NewOrder(&fAcc, fOrder.OrderType, pair, floatValueAmount, floatFill)
 
+							update.OrderID = fOrder.OrderID
+
 							if err != nil {
 								fmt.Fprintf(ctx, err.Error())
 							}
