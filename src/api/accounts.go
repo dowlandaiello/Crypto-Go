@@ -103,7 +103,7 @@ func setPosts(db *mgo.Database) (*fasthttprouter.Router, error) {
 }
 
 func setUpdates(initrouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	updateReq, err := NewRequestServer("?username?email?password", "/api/accounts/update", "POST", nil, db, "?username?email?password")
+	updateReq, err := NewRequestServer("?username?email?newpassword?oldpassword", "/api/accounts/update", "POST", nil, db, "?username?email?newpassword?oldpassword")
 
 	if err != nil {
 		return initrouter, err

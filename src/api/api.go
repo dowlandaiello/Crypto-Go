@@ -234,6 +234,7 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 		fAcc, err := findAccount(request.ElementDb, values[0])
 
 		if err != nil {
+			fmt.Println(values)
 			acc := accounts.NewAccount(values[0], values[1], values[2])
 
 			err = addAccount(request.ElementDb, &acc)
@@ -250,20 +251,24 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 				}
 			}
 		} else {
-			update := fAcc
+			if common.ComparePasswords(fAcc.PassHash, []byte(values[3])) {
+				update := fAcc
 
-			update.Username = values[0]
-			update.Email = values[1]
-			update.PassHash = common.HashAndSalt([]byte(values[2]))
+				update.Username = values[0]
+				update.Email = values[1]
+				update.PassHash = common.HashAndSalt([]byte(values[2]))
 
-			err = updateAccount(request.ElementDb, fAcc, &update)
+				err = updateAccount(request.ElementDb, fAcc, &update)
 
-			json, err := json.MarshalIndent(update, "", "  ")
+				json, err := json.MarshalIndent(update, "", "  ")
 
-			if err != nil {
-				fmt.Fprintf(ctx, err.Error())
+				if err != nil {
+					fmt.Fprintf(ctx, err.Error())
+				} else {
+					fmt.Fprintf(ctx, string(json[:]))
+				}
 			} else {
-				fmt.Fprintf(ctx, string(json[:]))
+				fmt.Fprint(ctx, errors.New("invalid password").Error())
 			}
 		}
 	} else if common.StringInSlice("pair", keys) && !strings.Contains(request.BaseElementLocation, "fill") {
