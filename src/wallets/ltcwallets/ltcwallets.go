@@ -5,14 +5,14 @@ import (
 )
 
 // NewWallet - generate pub, private keys for new wallet
-func NewWallet() (string, string, error) {
-	priv, err := common.CreateWIF("bitcoin")
+func NewWallet() (string, []byte, error) {
+	priv, err := common.CreateWIF("litecoin")
 
 	if err != nil {
-		return "", "", err
+		return "", []byte{}, err
 	}
 
-	pub, err := common.GetAddress("bitcoin", priv)
+	pub, err := common.GetAddress("litecoin", priv)
 
-	return pub.String(), priv.String(), nil
+	return pub.EncodeAddress(), priv.SerializePubKey(), nil
 }

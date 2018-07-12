@@ -22,7 +22,7 @@ func AddOrder(database *mgo.Database, order orders.Order) error {
 
 // UpdateOrder - updates specified order
 func UpdateOrder(database *mgo.Database, order orders.Order, update orders.Order) error {
-	c := database.C("orders")
+	c := database.C(order.OrderPair.StartingSymbol + "-" + order.OrderPair.EndingSymbol)
 
 	if order.Filled != true {
 		err := c.Update(order, update)
@@ -38,7 +38,7 @@ func UpdateOrder(database *mgo.Database, order orders.Order, update orders.Order
 
 // CancelOrder - cancel specified order, returns error
 func CancelOrder(database *mgo.Database, order orders.Order) error {
-	c := database.C("orders")
+	c := database.C(order.OrderPair.StartingSymbol + "-" + order.OrderPair.EndingSymbol)
 
 	if order.Filled != true {
 		err := c.Remove(order)
