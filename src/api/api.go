@@ -240,7 +240,6 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 		fAcc, err := findAccount(request.ElementDb, values[0])
 
 		if err != nil {
-			fmt.Println(values)
 			acc := accounts.NewAccount(values[0], values[1], values[2])
 
 			err = addAccount(request.ElementDb, &acc)
