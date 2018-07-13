@@ -17,7 +17,7 @@ func main() {
 
 /*
 	TODO:
-		- Account for sell orders
+		- Add API route to check pass
 		- On deployment, check for non-testnet
 		- Add method to clear volume after 24 hours via API
 */
