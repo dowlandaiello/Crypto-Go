@@ -39,6 +39,12 @@ const FeeRate = 0.1
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
+// ExchangeWallet - exchange wallet address
+const ExchangeWallet = "0x0F0388DB329fc7c1760d317B4d82ccCd1226Cf3C"
+
+// Tag -
+var Tag = []byte("github.com/mitsukomegumi/crypto-go")
+
 // BlockchainRequest - request struct for blockchain.com
 type BlockchainRequest struct {
 	Balance  float64 `json:"final_balance"`

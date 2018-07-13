@@ -287,6 +287,10 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 					pair := pairs.NewPair(split[0], split[1])
 					amount, _ := strconv.ParseFloat(values[2], 64)
 					fillprice, _ := strconv.ParseFloat(values[3], 64)
+
+					acc.Deposit(pair.StartingSymbol, request.ElementDb)
+					acc.Deposit(pair.EndingSymbol, request.ElementDb)
+
 					order, err := orders.NewOrder(&acc, values[1], pair, amount, fillprice)
 
 					if err != nil {
@@ -401,7 +405,7 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 			if err != nil {
 				fmt.Fprintf(ctx, err.Error())
 			} else {
-				err = orders.FillOrder(order)
+				err = orders.FillOrder(order, values[2])
 
 				order.OrderPair.Volume += order.Amount
 

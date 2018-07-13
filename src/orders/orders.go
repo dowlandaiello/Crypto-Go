@@ -40,28 +40,45 @@ func NewOrder(account *accounts.Account, ordertype string, tradingpair pairs.Pai
 
 	fmt.Println("current " + tradingpair.ToString() + " price: " + common.FloatToString(currentPrice))
 
-	if amount*fillprice <= account.WalletBalances[common.IndexInSlice(tradingpair.EndingSymbol, []string{"BTC", "LTC", "ETH"})] && tradingpair.StartingSymbol != tradingpair.EndingSymbol { // Checks that amount is not more than account's balance
-		rOrder := Order{Filled: false, FillTime: time.Now().UTC(), FillPrice: fillprice, IssuanceTime: time.Now().UTC(), Amount: (1.0 - common.FeeRate) * amount, OrderType: ordertype, OrderPair: &tradingpair, Issuer: account, OrderID: "", OrderFee: common.FeeRate * amount}
-
-		hash, err := common.Hash(rOrder) // Creates order hash
+	if amount <= account.WalletBalances[common.IndexInSlice(tradingpair.StartingSymbol, []string{"BTC", "LTC", "ETH"})] && tradingpair.StartingSymbol != tradingpair.EndingSymbol && ordertype == "SELL" {
+		order, err := newOrder(fillprice, amount, ordertype, tradingpair, account)
 
 		if err != nil {
-			return rOrder, err
+			return Order{}, err
 		}
 
-		rOrder.OrderID = hash
+		return order, nil
+	} else if amount*fillprice <= account.WalletBalances[common.IndexInSlice(tradingpair.EndingSymbol, []string{"BTC", "LTC", "ETH"})] && tradingpair.StartingSymbol != tradingpair.EndingSymbol && ordertype == "BUY" { // Checks that amount is not more than account's balance
+		order, err := newOrder(fillprice, amount, ordertype, tradingpair, account)
 
-		(*account).Orders = append(account.Orders, hash) // Appends
+		if err != nil {
+			return Order{}, err
+		}
 
-		//account.Balance -= (rOrder.OrderFee + rOrder.Amount) // No clue
-
-		return rOrder, nil
+		return order, nil
 	}
+
 	return Order{}, errors.New("insufficient balance") // Triggered on insufficient balance, nil order
 }
 
+func newOrder(fillprice float64, amount float64, ordertype string, tradingpair pairs.Pair, account *accounts.Account) (Order, error) {
+	rOrder := Order{Filled: false, FillTime: time.Now().UTC(), FillPrice: fillprice, IssuanceTime: time.Now().UTC(), Amount: (1.0 - common.FeeRate) * amount, OrderType: ordertype, OrderPair: &tradingpair, Issuer: account, OrderID: "", OrderFee: common.FeeRate * amount}
+
+	hash, err := common.Hash(rOrder) // Creates order hash
+
+	if err != nil {
+		return rOrder, err
+	}
+
+	rOrder.OrderID = hash
+
+	(*account).Orders = append(account.Orders, hash) // Appends
+
+	return rOrder, nil
+}
+
 // FillOrder - fills order
-func FillOrder(order *Order) error {
+func FillOrder(order *Order, password string) error {
 	currentPrice, err := market.CheckPrice(*order.OrderPair)
 
 	fmt.Println("\ncurrent " + order.OrderPair.ToString() + " price: " + common.FloatToString(currentPrice))
@@ -74,13 +91,37 @@ func FillOrder(order *Order) error {
 		fmt.Println("\norder filled at " + common.FloatToString(currentPrice) + " with destination of " + common.FloatToString(order.FillPrice))
 		order.Filled = true
 		order.FillTime = time.Now().UTC()
-		order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.StartingSymbol, common.AvailableSymbols)] += order.Amount                                            // Adds actual order amount (not including fees) to wallet
-		order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.EndingSymbol, common.AvailableSymbols)] -= (order.Amount*currentPrice + order.OrderFee*currentPrice) // Subtracts order value from wallet
+
+		keys, err := accounts.DecryptPrivateKeys(order.Issuer.WalletRawHashedKeys, password)
+
+		if err != nil {
+			return err
+		}
+
+		if order.OrderType == "BUY" {
+
+			order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.StartingSymbol, common.AvailableSymbols)] += order.Amount                                            // Adds actual order amount (not including fees) to wallet
+			order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.EndingSymbol, common.AvailableSymbols)] -= (order.Amount*currentPrice + order.OrderFee*currentPrice) // Subtracts order value from wallet
+
+			err := order.Issuer.MoveAssets(order.OrderPair.EndingSymbol, order.Issuer.WalletAddresses[common.IndexInSlice(order.OrderPair.EndingSymbol, []string{"BTC", "LTC", "ETH"})], common.ExchangeWallet, keys[common.IndexInSlice(order.OrderPair.EndingSymbol, []string{"BTC", "LTC", "ETH"})], (order.Amount*currentPrice + order.OrderFee*currentPrice))
+
+			if err != nil {
+				return err
+			}
+		} else if order.OrderType == "SELL" {
+			order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.StartingSymbol, common.AvailableSymbols)] -= order.Amount                                            // Sells actual order amount from wallet
+			order.Issuer.WalletBalances[common.IndexInSlice(order.OrderPair.EndingSymbol, common.AvailableSymbols)] += (order.Amount*currentPrice + order.OrderFee*currentPrice) // Adds order value to wallet
+
+			err := order.Issuer.MoveAssets(order.OrderPair.StartingSymbol, order.Issuer.WalletAddresses[common.IndexInSlice(order.OrderPair.StartingSymbol, []string{"BTC", "LTC", "ETH"})], common.ExchangeWallet, keys[common.IndexInSlice(order.OrderPair.StartingSymbol, []string{"BTC", "LTC", "ETH"})], (order.Amount + order.OrderFee))
+
+			if err != nil {
+				return err
+			}
+		}
 
 		return nil
 
 		//TODO: move assets
 	}
-	fmt.Println("order fill failed")
 	return errors.New("invalid request; insufficient balance or invalid fill price")
 }

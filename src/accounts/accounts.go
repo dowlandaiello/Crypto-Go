@@ -12,6 +12,7 @@ import (
 
 	"github.com/mitsukomegumi/Crypto-Go/src/common"
 	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
+	"github.com/mitsukomegumi/Crypto-Go/src/wallets/ethwallets"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -190,6 +191,18 @@ func (acc *Account) handleLtc() (float64, error) {
 	}
 
 	return val / 100000000, nil
+}
+
+// MoveAssets - moves specified amount of coins from one wallet to another
+func (acc Account) MoveAssets(symbol string, sending string, destination string, privatekey string, amount float64) error {
+	if symbol == "ETH" {
+		err := ethwallets.SendCoins(sending, privatekey, amount)
+
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // DecryptPrivateKeys - decrypts private keys

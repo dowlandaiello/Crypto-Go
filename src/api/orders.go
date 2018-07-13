@@ -113,7 +113,7 @@ func setOrderDeletes(initRouter *fasthttprouter.Router, db *mgo.Database) (*fast
 }
 
 func setOrderFills(initRouter *fasthttprouter.Router, db *mgo.Database) (*fasthttprouter.Router, error) {
-	postReq, err := NewRequestServer("?pair?OrderID", "/api/orders/fill", "POST", nil, db, "?pair?OrderID")
+	postReq, err := NewRequestServer("?pair?OrderID?password", "/api/orders/fill", "POST", nil, db, "?pair?OrderID?password")
 
 	if err != nil {
 		return nil, err
