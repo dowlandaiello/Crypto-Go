@@ -1,9 +1,9 @@
 package wallets
 
 import (
-	"github.com/mitsukomegumi/Crypto-Go/src/wallets/btcwallets"
-	"github.com/mitsukomegumi/Crypto-Go/src/wallets/ethwallets"
-	"github.com/mitsukomegumi/Crypto-Go/src/wallets/ltcwallets"
+	"github.com/dowlandaiello/Crypto-Go/src/wallets/btcwallets"
+	"github.com/dowlandaiello/Crypto-Go/src/wallets/ethwallets"
+	"github.com/dowlandaiello/Crypto-Go/src/wallets/ltcwallets"
 )
 
 // NewWallets - generate pub, private keys for all wallet types

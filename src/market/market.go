@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/mitsukomegumi/Crypto-Go/src/common"
-	"github.com/mitsukomegumi/Crypto-Go/src/pairs"
+	"github.com/dowlandaiello/Crypto-Go/src/common"
+	"github.com/dowlandaiello/Crypto-Go/src/pairs"
 )
 
 // CheckVolume - check volume (float) of specified tradingpair

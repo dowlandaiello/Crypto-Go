@@ -3,7 +3,7 @@ package database
 import (
 	"errors"
 
-	"github.com/mitsukomegumi/Crypto-Go/src/orders"
+	"github.com/dowlandaiello/Crypto-Go/src/orders"
 	mgo "gopkg.in/mgo.v2"
 )
 

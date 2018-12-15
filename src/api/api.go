@@ -7,21 +7,21 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mitsukomegumi/Crypto-Go/src/database"
-	"github.com/mitsukomegumi/Crypto-Go/src/market"
+	"github.com/dowlandaiello/Crypto-Go/src/database"
+	"github.com/dowlandaiello/Crypto-Go/src/market"
 
-	"github.com/mitsukomegumi/Crypto-Go/src/pairs"
+	"github.com/dowlandaiello/Crypto-Go/src/pairs"
 
-	"github.com/mitsukomegumi/Crypto-Go/src/orders"
+	"github.com/dowlandaiello/Crypto-Go/src/orders"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/buaazp/fasthttprouter"
-	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
+	"github.com/dowlandaiello/Crypto-Go/src/accounts"
 	"github.com/valyala/fasthttp"
 
-	"github.com/mitsukomegumi/Crypto-Go/src/common"
+	"github.com/dowlandaiello/Crypto-Go/src/common"
 )
 
 // AvailableRequestTypes - defined set of available re

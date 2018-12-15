@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	cryptocommon "github.com/mitsukomegumi/Crypto-Go/src/common"
+	cryptocommon "github.com/dowlandaiello/Crypto-Go/src/common"
 )
 
 // NewWallet - generate pub, private keys for new wallet

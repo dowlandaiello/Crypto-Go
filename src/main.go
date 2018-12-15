@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/mitsukomegumi/Crypto-Go/src/api"
-	"github.com/mitsukomegumi/Crypto-Go/src/database"
+	"github.com/dowlandaiello/Crypto-Go/src/api"
+	"github.com/dowlandaiello/Crypto-Go/src/database"
 )
 
 func main() {

@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/buaazp/fasthttprouter"
-	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
+	"github.com/dowlandaiello/Crypto-Go/src/accounts"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )

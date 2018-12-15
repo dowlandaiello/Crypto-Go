@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mitsukomegumi/Crypto-Go/src/common"
-	"github.com/mitsukomegumi/Crypto-Go/src/wallets"
-	"github.com/mitsukomegumi/Crypto-Go/src/wallets/ethwallets"
+	"github.com/dowlandaiello/Crypto-Go/src/common"
+	"github.com/dowlandaiello/Crypto-Go/src/wallets"
+	"github.com/dowlandaiello/Crypto-Go/src/wallets/ethwallets"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )

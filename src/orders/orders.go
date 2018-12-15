@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mitsukomegumi/Crypto-Go/src/market"
+	"github.com/dowlandaiello/Crypto-Go/src/market"
 
-	"github.com/mitsukomegumi/Crypto-Go/src/accounts"
-	"github.com/mitsukomegumi/Crypto-Go/src/common"
-	"github.com/mitsukomegumi/Crypto-Go/src/pairs"
+	"github.com/dowlandaiello/Crypto-Go/src/accounts"
+	"github.com/dowlandaiello/Crypto-Go/src/common"
+	"github.com/dowlandaiello/Crypto-Go/src/pairs"
 )
 
 // Order - definition of order, fields attributed to a single order

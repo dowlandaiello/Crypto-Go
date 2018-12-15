@@ -3,7 +3,7 @@ package pairs
 import (
 	"strings"
 
-	"github.com/mitsukomegumi/Crypto-Go/src/common"
+	"github.com/dowlandaiello/Crypto-Go/src/common"
 )
 
 // Pair - trading pair definition

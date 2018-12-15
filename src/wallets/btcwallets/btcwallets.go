@@ -1,7 +1,7 @@
 package btcwallets
 
 import (
-	"github.com/mitsukomegumi/Crypto-Go/src/common"
+	"github.com/dowlandaiello/Crypto-Go/src/common"
 )
 
 // NewWallet - generate pub, private keys for new wallet

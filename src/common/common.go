@@ -43,7 +43,7 @@ const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const ExchangeWallet = "0x0F0388DB329fc7c1760d317B4d82ccCd1226Cf3C"
 
 // Tag -
-var Tag = []byte("github.com/mitsukomegumi/crypto-go")
+var Tag = []byte("github.com/dowlandaiello/crypto-go")
 
 // BlockchainRequest - request struct for blockchain.com
 type BlockchainRequest struct {
