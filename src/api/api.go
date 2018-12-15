@@ -240,7 +240,6 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 		fAcc, err := findAccount(request.ElementDb, values[0])
 
 		if err != nil {
-			fmt.Println(values)
 			acc := accounts.NewAccount(values[0], values[1], values[2])
 
 			err = addAccount(request.ElementDb, &acc)
@@ -256,7 +255,7 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 					fmt.Fprintf(ctx, string(json[:]))
 				}
 			}
-		} else {
+		} else if strings.Contains("update", request.BaseElementLocation) {
 			if common.ComparePasswords(fAcc.PassHash, []byte(values[3])) {
 				update := fAcc
 
@@ -276,6 +275,8 @@ func (request RequestElement) HandlePost(ctx *fasthttp.RequestCtx) {
 			} else {
 				fmt.Fprint(ctx, errors.New("invalid password").Error())
 			}
+		} else {
+			fmt.Fprintf(ctx, "invalid request")
 		}
 	} else if common.StringInSlice("pair", keys) && !strings.Contains(request.BaseElementLocation, "fill") {
 		if !strings.Contains(request.BaseElementLocation, "update") {
